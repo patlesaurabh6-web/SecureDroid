@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: securedroid_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: privacy_monitoring
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: .
+    container_name: securedroid_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://root:root@db:3306/privacy_monitoring
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=privacy_monitoring
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - SECRET_KEY=securedroid_super_secret_jwt_key_change_in_production
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Primary Theme -->
+    <color name="primary">#1E80FF</color>
+    <color name="primary_dark">#1565C0</color>
+    <color name="primary_light">#4DA3FF</color>
+
+    <!-- Accent -->
+    <color name="accent">#00E5FF</color>
+
+    <!-- Background -->
+    <color name="background">#0B0F19</color>
+    <color name="surface">#131A2A</color>
+    <color name="surface_light">#1A2333</color>
+
+    <!-- Cards -->
+    <color name="card_background">#182235</color>
+    <color name="card_border">#2D3E5E</color>
+
+    <!-- Text -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B5C1D8</color>
+    <color name="text_hint">#7D8CA6</color>
+
+    <!-- Status -->
+    <color name="success">#00E676</color>
+    <color name="warning">#FFC107</color>
+    <color name="danger">#FF5252</color>
+
+    <!-- Dashboard -->
+    <color name="risk_low">#00E676</color>
+    <color name="risk_medium">#FFC107</color>
+    <color name="risk_high">#FF5252</color>
+
+    <!-- Divider -->
+    <color name="divider">#263238</color>
+
+    <!-- White -->
+    <color name="white">#FFFFFF</color>
+
+    <!-- Black -->
+    <color name="black">#000000</color>
+
+</resources>

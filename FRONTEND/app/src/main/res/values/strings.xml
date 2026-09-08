@@ -1,0 +1,33 @@
+<resources>
+
+    <string name="app_name">SecureDroid</string>
+
+    <string name="login">Login</string>
+
+    <string name="register">Register</string>
+
+    <string name="email">Email</string>
+
+    <string name="password">Password</string>
+
+    <string name="confirm_password">Confirm Password</string>
+
+    <string name="full_name">Full Name</string>
+
+    <string name="dashboard">Dashboard</string>
+
+    <string name="installed_apps">Installed Apps</string>
+
+    <string name="permission_manager">Permission Manager</string>
+
+    <string name="website_scanner">Website Scanner</string>
+
+    <string name="privacy_report">Privacy Report</string>
+
+    <string name="notifications">Notifications</string>
+
+    <string name="profile">Profile</string>
+
+    <string name="settings">Settings</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

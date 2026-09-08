@@ -1,0 +1,14 @@
+- [/] Create Data Model Classes
+    - [ ] `UserModel.java`
+    - [ ] `AlertModel.java`
+    - [ ] `TimelineModel.java`
+    - [ ] `StatisticModel.java`
+    - [ ] `RecommendationModel.java`
+    - [ ] `AppModel.java`
+    - [ ] `WebsiteModel.java`
+    - [ ] `PermissionModel.java`
+    - [ ] `RiskScoreModel.java`
+    - [ ] `NotificationModel.java`
+    - [ ] `HistoryModel.java`
+- [ ] Verify build
+    - [ ] Run `gradlew assembleDebug`

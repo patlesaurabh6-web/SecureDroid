@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Radar/pulse effect behind the risk score ring -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:repeatMode="restart"
+    android:repeatCount="infinite">
+    <scale
+        android:fromXScale="1.0" android:toXScale="1.35"
+        android:fromYScale="1.0" android:toYScale="1.35"
+        android:pivotX="50%" android:pivotY="50%"
+        android:duration="1400"
+        android:interpolator="@android:interpolator/decelerate_quad" />
+    <alpha
+        android:fromAlpha="0.55"
+        android:toAlpha="0.0"
+        android:duration="1400" />
+</set>

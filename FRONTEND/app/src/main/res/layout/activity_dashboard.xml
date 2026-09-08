@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <!-- Scrollable Dashboard Content (Home Tab) -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/dashboardScroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:paddingBottom="80dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/spacing_medium"
+            android:paddingEnd="@dimen/spacing_medium"
+            android:paddingTop="@dimen/spacing_large"
+            android:paddingBottom="@dimen/spacing_large">
+
+            <!-- Header -->
+            <include layout="@layout/dashboard_header"/>
+
+            <!-- Privacy Score -->
+            <include layout="@layout/dashboard_card_privacy_score"/>
+
+            <!-- Statistics -->
+            <include layout="@layout/dashboard_card_statistics"/>
+
+            <!-- Quick Actions -->
+            <include layout="@layout/dashboard_section_quick_actions"/>
+
+            <!-- Recent Alerts -->
+            <include layout="@layout/dashboard_section_recent_alerts"/>
+
+            <!-- AI Recommendation -->
+            <include layout="@layout/dashboard_section_ai_recommendation"/>
+
+            <!-- Privacy Timeline -->
+            <include layout="@layout/dashboard_section_privacy_timeline"/>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Fragment Container for other tabs (Monitor, Apps, Reports, Profile) -->
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="72dp"
+        android:visibility="gone"/>
+
+    <!-- Fixed Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_bottom_nav"
+        android:elevation="12dp"
+        app:itemIconTint="@color/nav_item_selector"
+        app:itemTextColor="@color/nav_item_selector"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/menu_bottom_navigation"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
