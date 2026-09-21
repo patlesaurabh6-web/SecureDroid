@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="16dp"
+    app:cardBackgroundColor="#121B2D"
+    app:strokeColor="#1E2B45"
+    app:strokeWidth="1.5dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="14dp">
+
+        <ImageView
+            android:id="@+id/imgAppIcon"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@drawable/ic_apps"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            app:tint="#1E80FF" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_toEndOf="@id/imgAppIcon"
+            android:layout_toStartOf="@id/txtAppRiskBadge"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:layout_centerVertical="true">
+
+            <TextView
+                android:id="@+id/txtAppName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Application Name"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:singleLine="true" />
+
+            <TextView
+                android:id="@+id/txtAppPermissions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3 Sensitive Permissions"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtAppRiskBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Medium"
+            android:textColor="#FFC107"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="#2EFFC107"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp" />
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

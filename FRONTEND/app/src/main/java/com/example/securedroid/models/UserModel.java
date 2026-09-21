@@ -1,10 +1,19 @@
 package com.example.securedroid.models;
 
+import com.google.gson.annotations.SerializedName;
+
 public class UserModel {
 
+    @SerializedName("id")
     private int userId;
+
+    @SerializedName("name")
     private String fullName;
+
+    @SerializedName("email")
     private String email;
+
+    @SerializedName("profileImage")
     private String profileImage;
 
     public UserModel() {
@@ -31,6 +40,14 @@ public class UserModel {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getName() {
+        return fullName;
+    }
+
+    public void setName(String name) {
+        this.fullName = name;
     }
 
     public String getEmail() {

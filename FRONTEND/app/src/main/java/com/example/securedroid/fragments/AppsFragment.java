@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.securedroid.R;
+import com.example.securedroid.adapters.AppAdapter;
 import com.example.securedroid.api.ApiClient;
 import com.example.securedroid.api.dto.AppAnalysisRequest;
 import com.example.securedroid.models.AppModel;
@@ -30,6 +30,7 @@ public class AppsFragment extends Fragment {
 
     private RecyclerView rvApps;
     private TextView txtHeader;
+    private AppAdapter adapter;
 
     public AppsFragment() {}
 
@@ -45,6 +46,10 @@ public class AppsFragment extends Fragment {
         rvApps = view.findViewById(R.id.rvApps);
         txtHeader = view.findViewById(R.id.txtHeader);
 
+        if (rvApps != null) {
+            rvApps.setLayoutManager(new LinearLayoutManager(getContext()));
+        }
+
         scanInstalledApps();
     }
 
@@ -56,7 +61,11 @@ public class AppsFragment extends Fragment {
             txtHeader.setText("Scanned Installed Applications (" + installedApps.size() + ")");
         }
 
-        // Submit first app analysis to backend to demonstrate live risk engine calculation
+        if (rvApps != null) {
+            adapter = new AppAdapter(getContext(), installedApps);
+            rvApps.setAdapter(adapter);
+        }
+
         if (!installedApps.isEmpty()) {
             AppModel sampleApp = installedApps.get(0);
             AppAnalysisRequest req = new AppAnalysisRequest(

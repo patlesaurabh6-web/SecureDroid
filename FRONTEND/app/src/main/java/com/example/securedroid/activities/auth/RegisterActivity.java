@@ -49,9 +49,7 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        txtLogin.setOnClickListener(v -> {
-            finish();
-        });
+        txtLogin.setOnClickListener(v -> finish());
     }
 
     private void performRegister() {
@@ -71,10 +69,10 @@ public class RegisterActivity extends AppCompatActivity {
                 btnRegister.setText("REGISTER");
 
                 if (response.isSuccessful() && response.body() != null) {
-                    Toast.makeText(RegisterActivity.this, "Account created successfully! Please sign in.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(RegisterActivity.this, "Account created successfully for " + name + "! Please sign in.", Toast.LENGTH_LONG).show();
                     finish();
                 } else if (response.code() == 409) {
-                    Toast.makeText(RegisterActivity.this, "Email is already registered.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(RegisterActivity.this, "Email address is already registered.", Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(RegisterActivity.this, "Registration failed: " + response.message(), Toast.LENGTH_LONG).show();
                 }
@@ -84,8 +82,7 @@ public class RegisterActivity extends AppCompatActivity {
             public void onFailure(Call<UserModel> call, Throwable t) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("REGISTER");
-                Toast.makeText(RegisterActivity.this, "Account created locally! Please sign in.", Toast.LENGTH_SHORT).show();
-                finish();
+                Toast.makeText(RegisterActivity.this, "Network connection error: " + t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -93,22 +90,27 @@ public class RegisterActivity extends AppCompatActivity {
     private boolean validateInput() {
         if (etName.getText().toString().trim().isEmpty()) {
             etName.setError("Enter Full Name");
+            etName.requestFocus();
             return false;
         }
         if (etEmail.getText().toString().trim().isEmpty()) {
             etEmail.setError("Enter Email");
+            etEmail.requestFocus();
             return false;
         }
         if (etMobile.getText().toString().trim().isEmpty()) {
             etMobile.setError("Enter Mobile Number");
+            etMobile.requestFocus();
             return false;
         }
         if (etPassword.getText().toString().trim().isEmpty()) {
             etPassword.setError("Enter Password");
+            etPassword.requestFocus();
             return false;
         }
         if (!etPassword.getText().toString().equals(etConfirmPassword.getText().toString())) {
             etConfirmPassword.setError("Passwords do not match");
+            etConfirmPassword.requestFocus();
             return false;
         }
         return true;

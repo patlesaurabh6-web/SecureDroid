@@ -9,14 +9,14 @@ import java.util.concurrent.TimeUnit;
 
 public class ApiClient {
 
-    // Configured for physical device testing over Wi-Fi (Laptop IP) & Android Emulator fallback
-    private static String BASE_URL = "http://10.235.148.167:8000/api/";
+    // Current Active Laptop Wi-Fi IP (Update here if laptop Wi-Fi IP changes)
+    private static String BASE_URL = "http://10.109.220.167:8000/api/";
 
     private static Retrofit retrofit = null;
 
     public static void setServerIp(String ipAddress) {
         BASE_URL = "http://" + ipAddress + ":8000/api/";
-        retrofit = null; // Re-initialize retrofit instance with updated base URL
+        retrofit = null;
     }
 
     public static synchronized Retrofit getClient(Context context) {

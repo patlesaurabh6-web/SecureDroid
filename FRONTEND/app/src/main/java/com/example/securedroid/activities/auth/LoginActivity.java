@@ -76,7 +76,6 @@ public class LoginActivity extends AppCompatActivity {
         Button btnCancelReset = dialogView.findViewById(R.id.btnCancelReset);
         Button btnSendReset = dialogView.findViewById(R.id.btnSendReset);
 
-        // Pre-fill email if user already typed one in login field
         if (etEmail != null && etEmail.getText() != null) {
             etResetEmail.setText(etEmail.getText().toString().trim());
         }
@@ -128,16 +127,22 @@ public class LoginActivity extends AppCompatActivity {
 
                 if (response.isSuccessful() && response.body() != null) {
                     TokenResponse tokenRes = response.body();
+                    String userName = tokenRes.getName() != null && !tokenRes.getName().isEmpty() 
+                            ? tokenRes.getName() 
+                            : email.split("@")[0];
+
                     sessionManager.saveAuthToken(
                             tokenRes.getAccessToken(),
                             tokenRes.getUserId(),
-                            tokenRes.getName() != null ? tokenRes.getName() : "User",
+                            userName,
                             tokenRes.getEmail() != null ? tokenRes.getEmail() : email
                     );
-                    Toast.makeText(LoginActivity.this, "Welcome back!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Welcome back, " + userName + "!", Toast.LENGTH_SHORT).show();
                     openDashboard();
+                } else if (response.code() == 401) {
+                    Toast.makeText(LoginActivity.this, "Invalid credentials. Please register or check your email and password.", Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(LoginActivity.this, "Invalid credentials. Please try again.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, "Login failed (Code: " + response.code() + "). Please try again.", Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -145,11 +150,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onFailure(Call<TokenResponse> call, Throwable t) {
                 btnLogin.setEnabled(true);
                 btnLogin.setText("LOGIN");
-                Toast.makeText(LoginActivity.this, "Connection error: " + t.getLocalizedMessage() + ". Logging in with offline mode.", Toast.LENGTH_LONG).show();
-                
-                // Dev offline fallback if backend isn't reachable during local UI preview
-                sessionManager.saveAuthToken("dev_offline_token", 1, "Alex", email);
-                openDashboard();
+                Toast.makeText(LoginActivity.this, "Cannot connect to backend server: " + t.getLocalizedMessage() + "\nPlease verify your backend is running.", Toast.LENGTH_LONG).show();
             }
         });
     }
