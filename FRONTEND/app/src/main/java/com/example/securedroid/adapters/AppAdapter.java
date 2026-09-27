@@ -46,13 +46,29 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
         holder.txtAppPermissions.setText(permCount + " Permissions Requested");
 
         // Load actual app icon
+        holder.imgAppIcon.setImageTintList(null);
+        holder.imgAppIcon.setColorFilter(null);
         try {
             PackageManager pm = context.getPackageManager();
             Drawable icon = pm.getApplicationIcon(app.getPackageName());
-            holder.imgAppIcon.setImageDrawable(icon);
-            holder.imgAppIcon.setColorFilter(null); // Clear tint for real icon
+            if (icon != null) {
+                holder.imgAppIcon.setImageDrawable(icon);
+            } else {
+                holder.imgAppIcon.setImageResource(R.drawable.ic_apps);
+            }
         } catch (Exception e) {
-            holder.imgAppIcon.setImageResource(R.drawable.ic_apps);
+            try {
+                PackageManager pm = context.getPackageManager();
+                android.content.pm.ApplicationInfo appInfo = pm.getApplicationInfo(app.getPackageName(), 0);
+                Drawable icon = appInfo.loadIcon(pm);
+                if (icon != null) {
+                    holder.imgAppIcon.setImageDrawable(icon);
+                } else {
+                    holder.imgAppIcon.setImageResource(R.drawable.ic_apps);
+                }
+            } catch (Exception ex) {
+                holder.imgAppIcon.setImageResource(R.drawable.ic_apps);
+            }
         }
 
         // Calculate dynamic risk level

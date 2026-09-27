@@ -111,6 +111,7 @@
 
             <!-- Item 1: Camera Access -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardNotif1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
@@ -172,10 +173,9 @@
                         android:paddingTop="3dp"
                         android:paddingBottom="3dp"/>
                 </RelativeLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Item 2: Location Access -->
+            </com.google.android.material.card.MaterialCardView>            <!-- Item 2: Location Access -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardNotif2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
@@ -241,6 +241,7 @@
 
             <!-- Item 3: Microphone Access -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardNotif3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
@@ -306,6 +307,7 @@
 
             <!-- Item 4: Screen Recording -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardNotif4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
@@ -371,6 +373,7 @@
 
             <!-- Item 5: Clipboard Access -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardNotif5"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"

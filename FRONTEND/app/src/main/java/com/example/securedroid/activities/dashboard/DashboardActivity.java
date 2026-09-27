@@ -3,6 +3,7 @@ package com.example.securedroid.activities.dashboard;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -29,7 +30,11 @@ import com.example.securedroid.utils.SessionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -38,7 +43,7 @@ import retrofit2.Response;
 public class DashboardActivity extends AppCompatActivity {
 
     private TextView txtGreeting, txtUserName;
-    private TextView txtRiskScore, txtRiskLevel;
+    private TextView txtRiskScore, txtRiskLevel, txtLastScanTime, txtSecurityStatusSummary;
     private MaterialButton btnAnalyze;
     private BottomNavigationView bottomNavigation;
     private View dashboardScroll;
@@ -47,6 +52,12 @@ public class DashboardActivity extends AppCompatActivity {
 
     private View cardApps, cardWebsite, cardAlerts, cardSafeApps;
     private View cardInstalledApps, cardWebsiteAnalysis, cardHistory, cardAIAdvisor;
+
+    // AI Recommendation & Recent Alerts
+    private TextView txtAiRecommendationTitle, txtAiRecommendationDesc;
+    private Button btnTakeAction;
+    private TextView txtViewAllAlerts;
+    private View cardRecentAlert1, cardRecentAlert2;
 
     private DashboardRepository dashboardRepository;
     private SessionManager sessionManager;
@@ -82,6 +93,8 @@ public class DashboardActivity extends AppCompatActivity {
 
         txtRiskScore = findViewById(R.id.txtRiskScore);
         txtRiskLevel = findViewById(R.id.txtRiskLevel);
+        txtLastScanTime = findViewById(R.id.txtLastScanTime);
+        txtSecurityStatusSummary = findViewById(R.id.txtSecurityStatusSummary);
         btnAnalyze = findViewById(R.id.btnAnalyze);
         layoutNotifications = findViewById(R.id.layoutNotifications);
 
@@ -99,6 +112,16 @@ public class DashboardActivity extends AppCompatActivity {
         cardHistory = findViewById(R.id.cardHistory);
         cardAIAdvisor = findViewById(R.id.cardAIAdvisor);
 
+        // AI Recommendation Views
+        txtAiRecommendationTitle = findViewById(R.id.txtAiRecommendationTitle);
+        txtAiRecommendationDesc = findViewById(R.id.txtAiRecommendationDesc);
+        btnTakeAction = findViewById(R.id.btnTakeAction);
+
+        // Recent Alerts Views
+        txtViewAllAlerts = findViewById(R.id.txtViewAllAlerts);
+        cardRecentAlert1 = findViewById(R.id.cardRecentAlert1);
+        cardRecentAlert2 = findViewById(R.id.cardRecentAlert2);
+
         // Notification Icon Click Listener
         if (layoutNotifications != null) {
             layoutNotifications.setOnClickListener(v -> {
@@ -109,9 +132,44 @@ public class DashboardActivity extends AppCompatActivity {
 
         if (btnAnalyze != null) {
             btnAnalyze.setOnClickListener(v -> {
+                updateScanTimestamp();
                 loadDashboardMetrics();
                 Toast.makeText(this, "Scanning device applications & privacy status...", Toast.LENGTH_SHORT).show();
             });
+        }
+
+        if (btnTakeAction != null) {
+            btnTakeAction.setOnClickListener(v -> {
+                Toast.makeText(this, "Opening Installed Applications audit...", Toast.LENGTH_SHORT).show();
+                if (bottomNavigation != null) {
+                    bottomNavigation.setSelectedItemId(R.id.nav_apps);
+                }
+            });
+        }
+
+        if (txtViewAllAlerts != null) {
+            txtViewAllAlerts.setOnClickListener(v -> {
+                Intent intent = new Intent(DashboardActivity.this, NotificationHistoryActivity.class);
+                startActivity(intent);
+            });
+        }
+
+        // Restore saved last scan time if available
+        String savedTime = sessionManager.getLastScanTime();
+        if (savedTime != null && txtLastScanTime != null) {
+            txtLastScanTime.setText(savedTime);
+        } else {
+            updateScanTimestamp();
+        }
+    }
+
+    private void updateScanTimestamp() {
+        String timeStr = "Last Scan : " + new SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault()).format(new Date());
+        if (txtLastScanTime != null) {
+            txtLastScanTime.setText(timeStr);
+        }
+        if (sessionManager != null) {
+            sessionManager.saveLastScanTime(timeStr);
         }
     }
 
@@ -224,28 +282,8 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void updateUI(DashboardSummaryResponse summary) {
-        int score = (int) summary.getOverallRiskScore();
-        String level = summary.getRiskLevel();
-        applyRiskScoreStyling(score, level);
-
-        if (cardApps != null) {
-            ((TextView) cardApps.findViewById(R.id.txtValue)).setText(String.valueOf(summary.getTotalApplications()));
-            ((TextView) cardApps.findViewById(R.id.txtTitle)).setText("Total Apps");
-        }
-        if (cardWebsite != null) {
-            ((TextView) cardWebsite.findViewById(R.id.txtValue)).setText(String.valueOf(summary.getMediumRiskApplications()));
-            ((TextView) cardWebsite.findViewById(R.id.txtTitle)).setText("Websites");
-        }
-        if (cardAlerts != null) {
-            ((TextView) cardAlerts.findViewById(R.id.txtValue)).setText(String.valueOf(summary.getHighRiskApplications()));
-            ((TextView) cardAlerts.findViewById(R.id.txtTitle)).setText("High Risk");
-            ((TextView) cardAlerts.findViewById(R.id.txtValue)).setTextColor(0xFFFF3B30);
-        }
-        if (cardSafeApps != null) {
-            ((TextView) cardSafeApps.findViewById(R.id.txtValue)).setText(String.valueOf(summary.getLowRiskApplications()));
-            ((TextView) cardSafeApps.findViewById(R.id.txtTitle)).setText("Safe Apps");
-            ((TextView) cardSafeApps.findViewById(R.id.txtValue)).setTextColor(0xFF00E676);
-        }
+        // Calculate based on live phone apps to guarantee consistency with Apps list
+        calculateLiveDeviceMetrics();
     }
 
     private void calculateLiveDeviceMetrics() {
@@ -255,23 +293,31 @@ public class DashboardActivity extends AppCompatActivity {
         int mediumRiskApps = 0;
         int safeApps = 0;
 
+        List<AppModel> highRiskList = new ArrayList<>();
+        List<AppModel> mediumRiskList = new ArrayList<>();
+
         for (AppModel app : apps) {
             boolean hasCamera = false;
             boolean hasMic = false;
             boolean hasLocation = false;
+            boolean hasSms = false;
 
             if (app.getPermissions() != null) {
                 for (String p : app.getPermissions()) {
-                    if (p.contains("CAMERA")) hasCamera = true;
-                    if (p.contains("RECORD_AUDIO")) hasMic = true;
-                    if (p.contains("ACCESS_FINE_LOCATION") || p.contains("ACCESS_COARSE_LOCATION")) hasLocation = true;
+                    String pUpper = p.toUpperCase();
+                    if (pUpper.contains("CAMERA")) hasCamera = true;
+                    if (pUpper.contains("RECORD_AUDIO") || pUpper.contains("MICROPHONE")) hasMic = true;
+                    if (pUpper.contains("LOCATION")) hasLocation = true;
+                    if (pUpper.contains("SMS") || pUpper.contains("CONTACT")) hasSms = true;
                 }
             }
 
-            if (hasCamera && hasLocation) {
+            if ((hasCamera && hasLocation) || (hasCamera && hasMic) || (hasSms && hasLocation)) {
                 highRiskApps++;
-            } else if (hasCamera || hasMic || hasLocation) {
+                highRiskList.add(app);
+            } else if (hasCamera || hasMic || hasLocation || hasSms) {
                 mediumRiskApps++;
+                mediumRiskList.add(app);
             } else {
                 safeApps++;
             }
@@ -283,7 +329,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         applyRiskScoreStyling(score, level);
 
-        // Update Stat Cards with real device counts
+        // Update Stat Cards with accurate device counts
         if (cardApps != null) {
             ((TextView) cardApps.findViewById(R.id.txtValue)).setText(String.valueOf(totalApps));
             ((TextView) cardApps.findViewById(R.id.txtTitle)).setText("Total Apps");
@@ -302,6 +348,104 @@ public class DashboardActivity extends AppCompatActivity {
             ((TextView) cardSafeApps.findViewById(R.id.txtTitle)).setText("Safe Apps");
             ((TextView) cardSafeApps.findViewById(R.id.txtValue)).setTextColor(0xFF00E676);
         }
+
+        // Update AI Recommendation description dynamically
+        if (txtAiRecommendationDesc != null) {
+            if (highRiskApps > 0) {
+                txtAiRecommendationDesc.setText(highRiskApps + " apps have sensitive permissions (Camera, Location, SMS). Review permissions to protect your privacy.");
+            } else if (mediumRiskApps > 0) {
+                txtAiRecommendationDesc.setText(mediumRiskApps + " apps have single sensitive permissions (Mic/Location). Audit apps to verify background usage.");
+            } else {
+                txtAiRecommendationDesc.setText("All scanned applications follow baseline security guidelines. Background protection active.");
+            }
+        }
+
+        // Update Recent Alerts cards dynamically with real high/medium risk apps
+        setupRecentAlertCards(highRiskList, mediumRiskList);
+    }
+
+    private void setupRecentAlertCards(List<AppModel> highRisk, List<AppModel> mediumRisk) {
+        // Alert 1
+        if (cardRecentAlert1 != null) {
+            TextView txtTitle1 = cardRecentAlert1.findViewById(R.id.txtAlertTitle);
+            TextView txtSub1 = cardRecentAlert1.findViewById(R.id.txtAlertSubtitle);
+            ImageView img1 = cardRecentAlert1.findViewById(R.id.imgAlert);
+
+            if (!highRisk.isEmpty()) {
+                AppModel app1 = highRisk.get(0);
+                if (txtTitle1 != null) txtTitle1.setText(app1.getApplicationName() + " - High Risk Permissions");
+                if (txtSub1 != null) txtSub1.setText(app1.getApplicationName() + " • Camera & Location • Today");
+                if (img1 != null) img1.setColorFilter(0xFFFF3B30);
+
+                cardRecentAlert1.setOnClickListener(v -> {
+                    Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
+                    intent.putExtra("APP_NAME", app1.getApplicationName());
+                    intent.putExtra("PERMISSION", "Camera & Location Access");
+                    intent.putExtra("RISK_LEVEL", "High");
+                    intent.putExtra("DESCRIPTION", "This app has simultaneous access to multiple sensitive permissions.");
+                    startActivity(intent);
+                });
+            } else {
+                if (txtTitle1 != null) txtTitle1.setText("Camera Permission Access");
+                if (txtSub1 != null) txtSub1.setText("Background Inspection • Today");
+                if (img1 != null) img1.setColorFilter(0xFFFF9800);
+
+                cardRecentAlert1.setOnClickListener(v -> {
+                    Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
+                    intent.putExtra("APP_NAME", "System Camera Monitor");
+                    intent.putExtra("PERMISSION", "Camera Sensor");
+                    startActivity(intent);
+                });
+            }
+        }
+
+        // Alert 2
+        if (cardRecentAlert2 != null) {
+            TextView txtTitle2 = cardRecentAlert2.findViewById(R.id.txtAlertTitle);
+            TextView txtSub2 = cardRecentAlert2.findViewById(R.id.txtAlertSubtitle);
+            ImageView img2 = cardRecentAlert2.findViewById(R.id.imgAlert);
+
+            if (highRisk.size() > 1) {
+                AppModel app2 = highRisk.get(1);
+                if (txtTitle2 != null) txtTitle2.setText(app2.getApplicationName() + " - Sensitive Access");
+                if (txtSub2 != null) txtSub2.setText(app2.getApplicationName() + " • Microphone & Storage • Today");
+                if (img2 != null) img2.setColorFilter(0xFFFF3B30);
+
+                cardRecentAlert2.setOnClickListener(v -> {
+                    Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
+                    intent.putExtra("APP_NAME", app2.getApplicationName());
+                    intent.putExtra("PERMISSION", "Microphone & Storage");
+                    intent.putExtra("RISK_LEVEL", "High");
+                    intent.putExtra("DESCRIPTION", "Application requests microphone and storage access in background.");
+                    startActivity(intent);
+                });
+            } else if (!mediumRisk.isEmpty()) {
+                AppModel app2 = mediumRisk.get(0);
+                if (txtTitle2 != null) txtTitle2.setText(app2.getApplicationName() + " - Location Access");
+                if (txtSub2 != null) txtSub2.setText(app2.getApplicationName() + " • Approximate Location • Today");
+                if (img2 != null) img2.setColorFilter(0xFFFFC107);
+
+                cardRecentAlert2.setOnClickListener(v -> {
+                    Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
+                    intent.putExtra("APP_NAME", app2.getApplicationName());
+                    intent.putExtra("PERMISSION", "Approximate Location");
+                    intent.putExtra("RISK_LEVEL", "Medium");
+                    intent.putExtra("DESCRIPTION", "Application accesses device location coordinates.");
+                    startActivity(intent);
+                });
+            } else {
+                if (txtTitle2 != null) txtTitle2.setText("Microphone Access Detected");
+                if (txtSub2 != null) txtSub2.setText("Audio Stream • Today");
+                if (img2 != null) img2.setColorFilter(0xFFFFC107);
+
+                cardRecentAlert2.setOnClickListener(v -> {
+                    Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
+                    intent.putExtra("APP_NAME", "Audio Monitor");
+                    intent.putExtra("PERMISSION", "Microphone");
+                    startActivity(intent);
+                });
+            }
+        }
     }
 
     private void applyRiskScoreStyling(int score, String level) {
@@ -317,14 +461,23 @@ public class DashboardActivity extends AppCompatActivity {
                 txtRiskScore.setTextColor(0xFF00E676); // Green
                 txtRiskLevel.setTextColor(0xFF00E676); // Green
                 txtRiskLevel.setText("LOW RISK (PROTECTED)");
+                if (txtSecurityStatusSummary != null) {
+                    txtSecurityStatusSummary.setText("Your device appears secure.");
+                }
             } else if (score >= 40 || (level != null && level.contains("MEDIUM"))) {
                 txtRiskScore.setTextColor(0xFFFFC107); // Yellow/Orange
                 txtRiskLevel.setTextColor(0xFFFFC107); // Yellow/Orange
                 txtRiskLevel.setText("MEDIUM RISK");
+                if (txtSecurityStatusSummary != null) {
+                    txtSecurityStatusSummary.setText("Moderate risk detected. Audit apps with location/mic.");
+                }
             } else {
                 txtRiskScore.setTextColor(0xFFFF3B30); // Red
                 txtRiskLevel.setTextColor(0xFFFF3B30); // Red
                 txtRiskLevel.setText("HIGH RISK DETECTED");
+                if (txtSecurityStatusSummary != null) {
+                    txtSecurityStatusSummary.setText("High privacy risk detected! Action required.");
+                }
             }
         }
     }

@@ -10,7 +10,11 @@ import java.util.concurrent.TimeUnit;
 public class ApiClient {
 
     // Current Active Laptop Wi-Fi IP (Update here if laptop Wi-Fi IP changes)
-    private static String BASE_URL = "http://10.109.220.167:8000/api/";
+    public static String BASE_URL = "http://10.109.220.167:8000/api/";
+
+    public static String getBaseUrl() {
+        return BASE_URL;
+    }
 
     private static Retrofit retrofit = null;
 

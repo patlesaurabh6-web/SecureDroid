@@ -57,6 +57,15 @@ public class SessionManager {
         return pref.getBoolean(KEY_IS_LOGGED_IN, false) && getAuthToken() != null;
     }
 
+    public void saveLastScanTime(String time) {
+        editor.putString("last_scan_time", time);
+        editor.apply();
+    }
+
+    public String getLastScanTime() {
+        return pref.getString("last_scan_time", null);
+    }
+
     public void logout() {
         editor.clear();
         editor.apply();
