@@ -144,8 +144,8 @@ public class SettingsActivity extends AppCompatActivity {
         builder.setTitle("Configure Server IP");
 
         final EditText input = new EditText(this);
-        input.setHint("e.g. 10.109.220.167");
-        input.setText("10.109.220.167");
+        input.setHint("e.g. 10.76.84.167");
+        input.setText("10.76.84.167");
         builder.setView(input);
 
         builder.setPositiveButton("Save", (dialog, which) -> {
