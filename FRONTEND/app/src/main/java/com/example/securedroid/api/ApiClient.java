@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 
 public class ApiClient {
 
-    // Current Active Laptop Wi-Fi IP (Update here if laptop Wi-Fi IP changes)
-    public static String BASE_URL = "http://10.76.84.167:8000/api/";
+    // Default connection via USB ADB Reverse (127.0.0.1:8000) or Wi-Fi IP
+    public static String BASE_URL = "http://127.0.0.1:8000/api/";
 
     public static String getBaseUrl() {
         return BASE_URL;
@@ -19,7 +19,11 @@ public class ApiClient {
     private static Retrofit retrofit = null;
 
     public static void setServerIp(String ipAddress) {
-        BASE_URL = "http://" + ipAddress + ":8000/api/";
+        if (ipAddress.startsWith("http://") || ipAddress.startsWith("https://")) {
+            BASE_URL = ipAddress.endsWith("/") ? ipAddress : ipAddress + "/";
+        } else {
+            BASE_URL = "http://" + ipAddress + ":8000/api/";
+        }
         retrofit = null;
     }
 
