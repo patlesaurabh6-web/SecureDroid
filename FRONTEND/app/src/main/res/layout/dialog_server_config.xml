@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="24dp"
+    app:cardBackgroundColor="#152233"
+    app:strokeColor="#1E88E5"
+    app:strokeWidth="1.5dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="22dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_language"
+                app:tint="@color/primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Backend Connection Setup"
+                android:textColor="@android:color/white"
+                android:textSize="17sp"
+                android:fontFamily="@font/poppins_bold"
+                android:layout_marginStart="10dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtDialogCurrentUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Current URL: http://127.0.0.1:8000/api/"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:layout_marginTop="10dp"
+            android:background="#0D1929"
+            android:padding="10dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select connection mode:"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:fontFamily="@font/poppins_medium"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Option 1: USB Mode -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnModeUsb"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="🔌 USB Mode (127.0.0.1:8000)"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:fontFamily="@font/poppins_semibold"
+            app:cornerRadius="12dp"
+            android:backgroundTint="#1E2B45"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Option 2: Wi-Fi Mode -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnModeWifi"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="📶 Wi-Fi Mode (10.76.84.167:8000)"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:fontFamily="@font/poppins_semibold"
+            app:cornerRadius="12dp"
+            android:backgroundTint="#1E2B45"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Option 3: Custom IP -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnModeCustom"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="✏️ Enter Custom IP Address"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:fontFamily="@font/poppins_semibold"
+            app:cornerRadius="12dp"
+            android:backgroundTint="#1E2B45"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Test Connection Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDialogTestConn"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="⚡ Test Server Connection"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins_bold"
+            app:cornerRadius="14dp"
+            android:backgroundTint="@color/primary"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Close -->
+        <Button
+            android:id="@+id/btnDialogClose"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="Close"
+            android:textAllCaps="false"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            style="@style/Widget.Material3.Button.TextButton" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

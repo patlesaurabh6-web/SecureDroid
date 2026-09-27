@@ -118,33 +118,58 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void showServerConfigDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_server_config, null);
+        TextView txtDialogCurrentUrl = dialogView.findViewById(R.id.txtDialogCurrentUrl);
+        Button btnModeUsb = dialogView.findViewById(R.id.btnModeUsb);
+        Button btnModeWifi = dialogView.findViewById(R.id.btnModeWifi);
+        Button btnModeCustom = dialogView.findViewById(R.id.btnModeCustom);
+        Button btnDialogTestConn = dialogView.findViewById(R.id.btnDialogTestConn);
+        Button btnDialogClose = dialogView.findViewById(R.id.btnDialogClose);
+
+        if (txtDialogCurrentUrl != null) {
+            txtDialogCurrentUrl.setText("Current URL: " + ApiClient.BASE_URL);
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Server Connection Setup");
-        builder.setMessage("Current URL: " + ApiClient.BASE_URL + "\n\nChoose connection mode or enter your laptop IP:");
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
 
-        String[] options = {
-                "🔌 USB Mode (http://127.0.0.1:8000/api/)",
-                "📶 Wi-Fi Mode (http://10.76.84.167:8000/api/)",
-                "✏️ Enter Custom IP Address",
-                "⚡ Test Connection Now"
-        };
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
 
-        builder.setItems(options, (dialog, which) -> {
-            if (which == 0) {
+        if (btnModeUsb != null) {
+            btnModeUsb.setOnClickListener(v -> {
                 ApiClient.setServerIp("127.0.0.1");
+                if (txtDialogCurrentUrl != null) txtDialogCurrentUrl.setText("Current URL: " + ApiClient.BASE_URL);
                 Toast.makeText(this, "Set to USB ADB Mode: " + ApiClient.BASE_URL, Toast.LENGTH_SHORT).show();
-            } else if (which == 1) {
-                ApiClient.setServerIp("10.76.84.167");
-                Toast.makeText(this, "Set to Wi-Fi Mode: " + ApiClient.BASE_URL, Toast.LENGTH_SHORT).show();
-            } else if (which == 2) {
-                showCustomIpInput();
-            } else if (which == 3) {
-                testServerConnection();
-            }
-        });
+            });
+        }
 
-        builder.setNegativeButton("Close", null);
-        builder.show();
+        if (btnModeWifi != null) {
+            btnModeWifi.setOnClickListener(v -> {
+                ApiClient.setServerIp("10.76.84.167");
+                if (txtDialogCurrentUrl != null) txtDialogCurrentUrl.setText("Current URL: " + ApiClient.BASE_URL);
+                Toast.makeText(this, "Set to Wi-Fi Mode: " + ApiClient.BASE_URL, Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (btnModeCustom != null) {
+            btnModeCustom.setOnClickListener(v -> {
+                dialog.dismiss();
+                showCustomIpInput();
+            });
+        }
+
+        if (btnDialogTestConn != null) {
+            btnDialogTestConn.setOnClickListener(v -> testServerConnection());
+        }
+
+        if (btnDialogClose != null) {
+            btnDialogClose.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
     }
 
     private void showCustomIpInput() {
