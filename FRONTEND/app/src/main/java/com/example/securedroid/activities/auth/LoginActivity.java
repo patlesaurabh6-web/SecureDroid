@@ -6,6 +6,7 @@ import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,6 +69,11 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         txtForgot.setOnClickListener(v -> showForgotPasswordDialog());
+
+        ImageView imgServerConfig = findViewById(R.id.imgServerConfig);
+        if (imgServerConfig != null) {
+            imgServerConfig.setOnClickListener(v -> showServerConfigDialog());
+        }
     }
 
     private void showForgotPasswordDialog() {
@@ -111,6 +117,76 @@ public class LoginActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private void showServerConfigDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Server Connection Setup");
+        builder.setMessage("Current URL: " + ApiClient.BASE_URL + "\n\nChoose connection mode or enter your laptop IP:");
+
+        String[] options = {
+                "🔌 USB Mode (http://127.0.0.1:8000/api/)",
+                "📶 Wi-Fi Mode (http://10.76.84.167:8000/api/)",
+                "✏️ Enter Custom IP Address",
+                "⚡ Test Connection Now"
+        };
+
+        builder.setItems(options, (dialog, which) -> {
+            if (which == 0) {
+                ApiClient.setServerIp("127.0.0.1");
+                Toast.makeText(this, "Set to USB ADB Mode: " + ApiClient.BASE_URL, Toast.LENGTH_SHORT).show();
+            } else if (which == 1) {
+                ApiClient.setServerIp("10.76.84.167");
+                Toast.makeText(this, "Set to Wi-Fi Mode: " + ApiClient.BASE_URL, Toast.LENGTH_SHORT).show();
+            } else if (which == 2) {
+                showCustomIpInput();
+            } else if (which == 3) {
+                testServerConnection();
+            }
+        });
+
+        builder.setNegativeButton("Close", null);
+        builder.show();
+    }
+
+    private void showCustomIpInput() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Laptop IP Address");
+
+        final android.widget.EditText input = new android.widget.EditText(this);
+        input.setHint("e.g. 10.76.84.167 or 192.168.1.5");
+        input.setText("127.0.0.1");
+        builder.setView(input);
+
+        builder.setPositiveButton("Save & Apply", (dialog, which) -> {
+            String ip = input.getText().toString().trim();
+            if (!ip.isEmpty()) {
+                ApiClient.setServerIp(ip);
+                Toast.makeText(this, "Updated: " + ApiClient.BASE_URL, Toast.LENGTH_LONG).show();
+                testServerConnection();
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void testServerConnection() {
+        Toast.makeText(this, "Testing connection to " + ApiClient.BASE_URL + "...", Toast.LENGTH_SHORT).show();
+        ApiClient.getDashboardApi(this).getDashboardSummary().enqueue(new Callback<com.example.securedroid.api.dto.DashboardSummaryResponse>() {
+            @Override
+            public void onResponse(Call<com.example.securedroid.api.dto.DashboardSummaryResponse> call, Response<com.example.securedroid.api.dto.DashboardSummaryResponse> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(LoginActivity.this, "✅ Connection Successful! (HTTP 200 OK)", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(LoginActivity.this, "⚠️ Server returned HTTP " + response.code(), Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.securedroid.api.dto.DashboardSummaryResponse> call, Throwable t) {
+                Toast.makeText(LoginActivity.this, "❌ Failed: " + t.getLocalizedMessage() + "\nTap the top right icon to switch mode.", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     private void performLogin() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
@@ -150,7 +226,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onFailure(Call<TokenResponse> call, Throwable t) {
                 btnLogin.setEnabled(true);
                 btnLogin.setText("LOGIN");
-                Toast.makeText(LoginActivity.this, "Cannot connect to backend server: " + t.getLocalizedMessage() + "\nPlease verify your backend is running.", Toast.LENGTH_LONG).show();
+                showServerConfigDialog();
             }
         });
     }
