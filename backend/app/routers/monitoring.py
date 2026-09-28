@@ -11,6 +11,10 @@ from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/monitoring", tags=["Monitoring & Events"])
 
+@router.get("/status")
+def get_monitoring_status():
+    return {"status": "active", "service": "realtime_privacy_monitoring"}
+
 @router.post("/events", response_model=PrivacyEventResponse, status_code=status.HTTP_201_CREATED)
 def record_privacy_event(
     event_in: PrivacyEventCreate,

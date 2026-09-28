@@ -15,6 +15,8 @@ from app.services.risk_service import calculate_privacy_risk
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 @router.get("", response_model=DashboardSummary)
+@router.get("/", response_model=DashboardSummary)
+@router.get("/summary", response_model=DashboardSummary)
 def get_dashboard_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

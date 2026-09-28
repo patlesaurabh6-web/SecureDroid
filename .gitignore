@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
+*.sqlite3
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Android / Gradle
+.gradle/
+build/
+*.iml
+.idea/
+local.properties
+.DS_Store

@@ -69,11 +69,6 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         txtForgot.setOnClickListener(v -> showForgotPasswordDialog());
-
-        ImageView imgServerConfig = findViewById(R.id.imgServerConfig);
-        if (imgServerConfig != null) {
-            imgServerConfig.setOnClickListener(v -> showServerConfigDialog());
-        }
     }
 
     private void showForgotPasswordDialog() {
@@ -117,101 +112,6 @@ public class LoginActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void showServerConfigDialog() {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_server_config, null);
-        TextView txtDialogCurrentUrl = dialogView.findViewById(R.id.txtDialogCurrentUrl);
-        Button btnModeUsb = dialogView.findViewById(R.id.btnModeUsb);
-        Button btnModeWifi = dialogView.findViewById(R.id.btnModeWifi);
-        Button btnModeCustom = dialogView.findViewById(R.id.btnModeCustom);
-        Button btnDialogTestConn = dialogView.findViewById(R.id.btnDialogTestConn);
-        Button btnDialogClose = dialogView.findViewById(R.id.btnDialogClose);
-
-        if (txtDialogCurrentUrl != null) {
-            txtDialogCurrentUrl.setText("Current URL: " + ApiClient.BASE_URL);
-        }
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setView(dialogView);
-        AlertDialog dialog = builder.create();
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
-
-        if (btnModeUsb != null) {
-            btnModeUsb.setOnClickListener(v -> {
-                ApiClient.setServerIp("127.0.0.1");
-                if (txtDialogCurrentUrl != null) txtDialogCurrentUrl.setText("Current URL: " + ApiClient.BASE_URL);
-                Toast.makeText(this, "Set to USB ADB Mode: " + ApiClient.BASE_URL, Toast.LENGTH_SHORT).show();
-            });
-        }
-
-        if (btnModeWifi != null) {
-            btnModeWifi.setOnClickListener(v -> {
-                ApiClient.setServerIp("10.76.84.167");
-                if (txtDialogCurrentUrl != null) txtDialogCurrentUrl.setText("Current URL: " + ApiClient.BASE_URL);
-                Toast.makeText(this, "Set to Wi-Fi Mode: " + ApiClient.BASE_URL, Toast.LENGTH_SHORT).show();
-            });
-        }
-
-        if (btnModeCustom != null) {
-            btnModeCustom.setOnClickListener(v -> {
-                dialog.dismiss();
-                showCustomIpInput();
-            });
-        }
-
-        if (btnDialogTestConn != null) {
-            btnDialogTestConn.setOnClickListener(v -> testServerConnection());
-        }
-
-        if (btnDialogClose != null) {
-            btnDialogClose.setOnClickListener(v -> dialog.dismiss());
-        }
-
-        dialog.show();
-    }
-
-    private void showCustomIpInput() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Laptop IP Address");
-
-        final android.widget.EditText input = new android.widget.EditText(this);
-        input.setHint("e.g. 10.76.84.167 or 192.168.1.5");
-        input.setText("127.0.0.1");
-        builder.setView(input);
-
-        builder.setPositiveButton("Save & Apply", (dialog, which) -> {
-            String ip = input.getText().toString().trim();
-            if (!ip.isEmpty()) {
-                ApiClient.setServerIp(ip);
-                Toast.makeText(this, "Updated: " + ApiClient.BASE_URL, Toast.LENGTH_LONG).show();
-                testServerConnection();
-            }
-        });
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
-    }
-
-    private void testServerConnection() {
-        Toast.makeText(this, "Testing connection to " + ApiClient.BASE_URL + "...", Toast.LENGTH_SHORT).show();
-        ApiClient.getDashboardApi(this).getDashboardSummary().enqueue(new Callback<com.example.securedroid.api.dto.DashboardSummaryResponse>() {
-            @Override
-            public void onResponse(Call<com.example.securedroid.api.dto.DashboardSummaryResponse> call, Response<com.example.securedroid.api.dto.DashboardSummaryResponse> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(LoginActivity.this, "✅ Connection Successful! (HTTP 200 OK)", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(LoginActivity.this, "⚠️ Server returned HTTP " + response.code(), Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<com.example.securedroid.api.dto.DashboardSummaryResponse> call, Throwable t) {
-                Toast.makeText(LoginActivity.this, "❌ Failed: " + t.getLocalizedMessage() + "\nTap the top right icon to switch mode.", Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
     private void performLogin() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
@@ -251,7 +151,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onFailure(Call<TokenResponse> call, Throwable t) {
                 btnLogin.setEnabled(true);
                 btnLogin.setText("LOGIN");
-                showServerConfigDialog();
+                Toast.makeText(LoginActivity.this, "Cannot connect to server. Please check backend connection.", Toast.LENGTH_LONG).show();
             }
         });
     }
