@@ -44,6 +44,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     private TextView txtGreeting, txtUserName;
     private TextView txtRiskScore, txtRiskLevel, txtLastScanTime, txtSecurityStatusSummary;
+    private FrameLayout layoutScoreCircle;
     private MaterialButton btnAnalyze;
     private BottomNavigationView bottomNavigation;
     private View dashboardScroll;
@@ -93,6 +94,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         txtRiskScore = findViewById(R.id.txtRiskScore);
         txtRiskLevel = findViewById(R.id.txtRiskLevel);
+        layoutScoreCircle = findViewById(R.id.layoutScoreCircle);
         txtLastScanTime = findViewById(R.id.txtLastScanTime);
         txtSecurityStatusSummary = findViewById(R.id.txtSecurityStatusSummary);
         btnAnalyze = findViewById(R.id.btnAnalyze);
@@ -453,32 +455,48 @@ public class DashboardActivity extends AppCompatActivity {
             txtRiskScore.setText(String.valueOf(score));
         }
 
-        if (txtRiskLevel != null) {
-            txtRiskLevel.setText(level != null ? level.toUpperCase() : "SAFE");
-
-            // Dynamic color coding: Green for Low Risk, Yellow for Medium Risk, Red for High Risk
-            if (score >= 70 || (level != null && level.contains("LOW"))) {
-                txtRiskScore.setTextColor(0xFF00E676); // Green
-                txtRiskLevel.setTextColor(0xFF00E676); // Green
+        int targetColor;
+        if (score >= 70 || (level != null && level.contains("LOW"))) {
+            targetColor = 0xFF00E676; // Vibrant Green
+            if (txtRiskLevel != null) {
                 txtRiskLevel.setText("LOW RISK (PROTECTED)");
-                if (txtSecurityStatusSummary != null) {
-                    txtSecurityStatusSummary.setText("Your device appears secure.");
-                }
-            } else if (score >= 40 || (level != null && level.contains("MEDIUM"))) {
-                txtRiskScore.setTextColor(0xFFFFC107); // Yellow/Orange
-                txtRiskLevel.setTextColor(0xFFFFC107); // Yellow/Orange
-                txtRiskLevel.setText("MEDIUM RISK");
-                if (txtSecurityStatusSummary != null) {
-                    txtSecurityStatusSummary.setText("Moderate risk detected. Audit apps with location/mic.");
-                }
-            } else {
-                txtRiskScore.setTextColor(0xFFFF3B30); // Red
-                txtRiskLevel.setTextColor(0xFFFF3B30); // Red
-                txtRiskLevel.setText("HIGH RISK DETECTED");
-                if (txtSecurityStatusSummary != null) {
-                    txtSecurityStatusSummary.setText("High privacy risk detected! Action required.");
-                }
             }
+            if (txtSecurityStatusSummary != null) {
+                txtSecurityStatusSummary.setText("Your device appears secure. Privacy score is healthy.");
+            }
+        } else if (score >= 40 || (level != null && level.contains("MEDIUM"))) {
+            targetColor = 0xFFFFC107; // Vibrant Amber/Yellow
+            if (txtRiskLevel != null) {
+                txtRiskLevel.setText("MEDIUM RISK");
+            }
+            if (txtSecurityStatusSummary != null) {
+                txtSecurityStatusSummary.setText("Moderate risk detected. Audit apps with location/mic access.");
+            }
+        } else {
+            targetColor = 0xFFFF3B30; // Vibrant Red
+            if (txtRiskLevel != null) {
+                txtRiskLevel.setText("HIGH RISK DETECTED");
+            }
+            if (txtSecurityStatusSummary != null) {
+                txtSecurityStatusSummary.setText("High privacy risk detected! Review sensitive app permissions.");
+            }
+        }
+
+        if (txtRiskScore != null) {
+            txtRiskScore.setTextColor(targetColor);
+        }
+        if (txtRiskLevel != null) {
+            txtRiskLevel.setTextColor(targetColor);
+        }
+
+        // Apply matching dynamic color to the circular ring around the risk score
+        if (layoutScoreCircle != null) {
+            android.graphics.drawable.GradientDrawable circleBg = new android.graphics.drawable.GradientDrawable();
+            circleBg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+            circleBg.setColor(0xFF1B2B40);
+            int strokeWidthPx = (int) (8 * getResources().getDisplayMetrics().density);
+            circleBg.setStroke(strokeWidthPx, targetColor);
+            layoutScoreCircle.setBackground(circleBg);
         }
     }
 

@@ -24,6 +24,10 @@ public class AppAnalysisRequest {
         this.permissions = permissions;
     }
 
+    public AppAnalysisRequest(String packageName, String applicationName, List<String> permissions) {
+        this(packageName, applicationName, "1.0", "Unknown", permissions);
+    }
+
     public String getPackageName() { return packageName; }
     public String getApplicationName() { return applicationName; }
     public String getVersionName() { return versionName; }

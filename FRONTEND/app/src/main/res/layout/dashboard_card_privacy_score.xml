@@ -39,6 +39,7 @@
         <!-- Score Circle -->
 
         <FrameLayout
+            android:id="@+id/layoutScoreCircle"
             android:layout_width="180dp"
             android:layout_height="180dp"
             android:layout_gravity="center"
