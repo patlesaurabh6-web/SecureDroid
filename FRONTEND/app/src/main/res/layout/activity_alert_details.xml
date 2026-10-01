@@ -248,17 +248,17 @@
             android:id="@+id/btnRestrictApp"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:text="RESTRICT APP"
+            android:text="OPEN APP SETTINGS"
             android:textSize="15sp"
             android:textStyle="bold"
             android:textColor="#FFFFFF"
-            android:background="@drawable/bg_danger_button"/>
+            android:background="@drawable/bg_glow_button"/>
 
         <Button
             android:id="@+id/btnIgnore"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="IGNORE"
+            android:text="MARK AS REVIEWED"
             android:textSize="14sp"
             android:textColor="@color/text_secondary"
             android:background="@drawable/bg_outline_button"

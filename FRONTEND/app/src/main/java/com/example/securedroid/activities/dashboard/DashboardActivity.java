@@ -245,21 +245,25 @@ public class DashboardActivity extends AppCompatActivity {
         if (cardApps != null) {
             cardApps.setOnClickListener(v -> {
                 if (bottomNavigation != null) bottomNavigation.setSelectedItemId(R.id.nav_apps);
+                loadFragment(AppsFragment.newInstance("ALL"));
             });
         }
         if (cardWebsite != null) {
             cardWebsite.setOnClickListener(v -> {
-                if (bottomNavigation != null) bottomNavigation.setSelectedItemId(R.id.nav_reports);
+                if (bottomNavigation != null) bottomNavigation.setSelectedItemId(R.id.nav_apps);
+                loadFragment(AppsFragment.newInstance("MEDIUM"));
             });
         }
         if (cardAlerts != null) {
             cardAlerts.setOnClickListener(v -> {
                 if (bottomNavigation != null) bottomNavigation.setSelectedItemId(R.id.nav_apps);
+                loadFragment(AppsFragment.newInstance("HIGH"));
             });
         }
         if (cardSafeApps != null) {
             cardSafeApps.setOnClickListener(v -> {
                 if (bottomNavigation != null) bottomNavigation.setSelectedItemId(R.id.nav_apps);
+                loadFragment(AppsFragment.newInstance("SAFE"));
             });
         }
     }

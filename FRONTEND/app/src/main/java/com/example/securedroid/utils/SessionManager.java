@@ -57,6 +57,17 @@ public class SessionManager {
         return pref.getBoolean(KEY_IS_LOGGED_IN, false) && getAuthToken() != null;
     }
 
+    public void saveUserProfile(String name, String email, String avatarUri) {
+        if (name != null) editor.putString(KEY_USER_NAME, name);
+        if (email != null) editor.putString(KEY_USER_EMAIL, email);
+        if (avatarUri != null) editor.putString("user_avatar_uri", avatarUri);
+        editor.apply();
+    }
+
+    public String getAvatarUri() {
+        return pref.getString("user_avatar_uri", null);
+    }
+
     public void saveLastScanTime(String time) {
         editor.putString("last_scan_time", time);
         editor.apply();
@@ -64,6 +75,66 @@ public class SessionManager {
 
     public String getLastScanTime() {
         return pref.getString("last_scan_time", null);
+    }
+
+    // Website Scans History Storage
+    public void addWebsiteScan(com.example.securedroid.models.WebsiteModel scan) {
+        java.util.List<com.example.securedroid.models.WebsiteModel> list = getWebsiteScans();
+        list.add(0, scan);
+        if (list.size() > 50) list = list.subList(0, 50);
+        String json = new com.google.gson.Gson().toJson(list);
+        editor.putString("website_scans_history", json);
+        editor.apply();
+    }
+
+    public java.util.List<com.example.securedroid.models.WebsiteModel> getWebsiteScans() {
+        String json = pref.getString("website_scans_history", null);
+        if (json == null || json.isEmpty()) return new java.util.ArrayList<>();
+        try {
+            java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<java.util.List<com.example.securedroid.models.WebsiteModel>>(){}.getType();
+            return new com.google.gson.Gson().fromJson(json, type);
+        } catch (Exception e) {
+            return new java.util.ArrayList<>();
+        }
+    }
+
+    // Privacy & Permission Alert Events Storage
+    public void addPrivacyAlert(com.example.securedroid.models.AlertModel alert) {
+        java.util.List<com.example.securedroid.models.AlertModel> list = getPrivacyAlerts();
+        list.add(0, alert);
+        if (list.size() > 100) list = list.subList(0, 100);
+        String json = new com.google.gson.Gson().toJson(list);
+        editor.putString("privacy_alerts_history", json);
+        editor.apply();
+    }
+
+    public java.util.List<com.example.securedroid.models.AlertModel> getPrivacyAlerts() {
+        String json = pref.getString("privacy_alerts_history", null);
+        if (json == null || json.isEmpty()) return new java.util.ArrayList<>();
+        try {
+            java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<java.util.List<com.example.securedroid.models.AlertModel>>(){}.getType();
+            return new com.google.gson.Gson().fromJson(json, type);
+        } catch (Exception e) {
+            return new java.util.ArrayList<>();
+        }
+    }
+
+    // App Permissions Snapshot (for P_old vs P_new comparison)
+    public void saveAppPermissionsSnapshot(String packageName, java.util.List<String> perms) {
+        String json = perms != null ? new com.google.gson.Gson().toJson(perms) : "[]";
+        editor.putString("app_perms_snap_" + packageName, json);
+        editor.apply();
+    }
+
+    public java.util.List<String> getAppPermissionsSnapshot(String packageName) {
+        String json = pref.getString("app_perms_snap_" + packageName, null);
+        if (json == null) return null; // null indicates never scanned before
+        try {
+            java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<java.util.List<String>>(){}.getType();
+            return new com.google.gson.Gson().fromJson(json, type);
+        } catch (Exception e) {
+            return new java.util.ArrayList<>();
+        }
     }
 
     public void logout() {

@@ -74,7 +74,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Overall Score"
+                        android:text="Overall Device Privacy Score"
                         android:textColor="@color/text_secondary"
                         android:textSize="13sp"/>
 
@@ -86,17 +86,19 @@
                         android:layout_marginTop="4dp">
 
                         <TextView
+                            android:id="@+id/txtReportScore"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="82"
+                            android:text="--"
                             android:textColor="@color/text_primary"
                             android:textSize="36sp"
                             android:textStyle="bold"/>
 
                         <TextView
+                            android:id="@+id/txtReportScoreStatus"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="  +8% from last week"
+                            android:text="  Device Audit Active"
                             android:textColor="#00E676"
                             android:textSize="13sp"
                             android:textStyle="bold"
@@ -264,7 +266,7 @@
                 android:weightSum="2"
                 android:layout_marginTop="16dp">
 
-                <!-- Stat 1: Alerts -->
+                <!-- Stat 1: Total Apps -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="90dp"
@@ -284,38 +286,23 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Alerts"
+                            android:text="Apps Analyzed"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp"/>
 
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/txtReportTotalApps"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="bottom"
-                            android:layout_marginTop="4dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="24"
-                                android:textColor="@color/text_primary"
-                                android:textSize="22sp"
-                                android:textStyle="bold"/>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="  +4"
-                                android:textColor="#FF3B30"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                android:layout_marginBottom="4dp"/>
-                        </LinearLayout>
+                            android:text="--"
+                            android:textColor="@color/text_primary"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Stat 2: Blocked -->
+                <!-- Stat 2: High Risk Apps -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="90dp"
@@ -335,40 +322,25 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Blocked"
+                            android:text="High Risk Apps"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp"/>
 
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/txtReportHighRisk"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="bottom"
-                            android:layout_marginTop="4dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="12"
-                                android:textColor="@color/text_primary"
-                                android:textSize="22sp"
-                                android:textStyle="bold"/>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="  -2"
-                                android:textColor="#00E676"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                android:layout_marginBottom="4dp"/>
-                        </LinearLayout>
+                            android:text="0"
+                            android:textColor="#FF3B30"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
 
-            <!-- Stat 3: Data Protected -->
+            <!-- Stat 3: Privacy Events -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="90dp"
@@ -387,34 +359,19 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Data Protected"
+                        android:text="Privacy Alerts Recorded"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"/>
 
-                    <LinearLayout
+                    <TextView
+                        android:id="@+id/txtReportAlerts"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="bottom"
-                        android:layout_marginTop="4dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="2.4 GB"
-                            android:textColor="@color/text_primary"
-                            android:textSize="22sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="  +1.2 GB"
-                            android:textColor="#00E676"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="4dp"/>
-                    </LinearLayout>
+                        android:text="0"
+                        android:textColor="#FFC107"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

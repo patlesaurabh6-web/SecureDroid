@@ -131,7 +131,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Apps Scanned"
+                            android:text="Apps Audited"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp"/>
 
@@ -139,7 +139,7 @@
                             android:id="@+id/txtAppsScanned"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="24"
+                            android:text="--"
                             android:textColor="@color/text_primary"
                             android:textSize="20sp"
                             android:textStyle="bold"
@@ -147,7 +147,7 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Threats Blocked Card -->
+                <!-- Privacy Events Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="80dp"
@@ -169,23 +169,23 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Threats Blocked"
+                            android:text="Privacy Events"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp"/>
 
                         <TextView
-                            android:id="@+id/txtThreatsBlocked"
+                            android:id="@+id/txtPrivacyEventsCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="05"
-                            android:textColor="#FF3B30"
+                            android:text="0"
+                            android:textColor="#FFC107"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Data Protected Card -->
+                <!-- High Risk Apps Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="80dp"
@@ -206,17 +206,17 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Data Protected"
+                            android:text="High Risk"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp"/>
 
                         <TextView
-                            android:id="@+id/txtDataProtected"
+                            android:id="@+id/txtHighRiskCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="1.2 GB"
-                            android:textColor="#00E676"
-                            android:textSize="18sp"
+                            android:text="0"
+                            android:textColor="#FF3B30"
+                            android:textSize="20sp"
                             android:textStyle="bold"
                             android:layout_marginTop="4dp"/>
                     </LinearLayout>
@@ -234,8 +234,9 @@
                 android:textStyle="bold"
                 android:layout_marginTop="24dp" />
 
-            <!-- Monitored App 1: WhatsApp -->
+            <!-- Monitored App 1 -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardMonitoredApp1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -266,26 +267,29 @@
                         android:layout_centerVertical="true">
 
                         <TextView
+                            android:id="@+id/txtMonitoredAppName1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="WhatsApp"
+                            android:text="Installed Application"
                             android:textColor="@color/text_primary"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
 
                         <TextView
+                            android:id="@+id/txtMonitoredAppStatus1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Monitoring active connection"
+                            android:text="Periodic permission check active"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp"
                             android:layout_marginTop="2dp"/>
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/txtMonitoredAppBadge1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Monitoring"
+                        android:text="Audited"
                         android:textColor="#00E676"
                         android:textSize="12sp"
                         android:textStyle="bold"
@@ -299,8 +303,9 @@
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Monitored App 2: Chrome -->
+            <!-- Monitored App 2 -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardMonitoredApp2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -332,26 +337,29 @@
                         android:layout_centerVertical="true">
 
                         <TextView
+                            android:id="@+id/txtMonitoredAppName2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Chrome"
+                            android:text="Installed Application"
                             android:textColor="@color/text_primary"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
 
                         <TextView
+                            android:id="@+id/txtMonitoredAppStatus2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Monitoring background network"
+                            android:text="Periodic permission check active"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp"
                             android:layout_marginTop="2dp"/>
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/txtMonitoredAppBadge2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Monitoring"
+                        android:text="Audited"
                         android:textColor="#00E676"
                         android:textSize="12sp"
                         android:textStyle="bold"

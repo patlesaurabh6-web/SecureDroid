@@ -92,10 +92,11 @@
                         android:gravity="center">
 
                         <ImageView
+                            android:id="@+id/imgWebScoreRing"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:src="@drawable/bg_score_circle"
-                            app:tint="#FFC107"/>
+                            app:tint="#00E676"/>
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -108,7 +109,7 @@
                                 android:id="@+id/txtWebScore"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="72"
+                                android:text="--"
                                 android:textColor="@color/text_primary"
                                 android:textSize="32sp"
                                 android:textStyle="bold"/>
@@ -123,20 +124,23 @@
                     </RelativeLayout>
 
                     <TextView
+                        android:id="@+id/txtWebRiskLevel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Medium Risk"
-                        android:textColor="#FFC107"
+                        android:text="Enter URL to Scan"
+                        android:textColor="#00E676"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_marginTop="12dp"/>
 
                     <TextView
+                        android:id="@+id/txtWebRiskSummary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="This website is moderately safe."
+                        android:text="Observable URL characteristics and SSL encryption will be evaluated."
                         android:textColor="@color/text_secondary"
                         android:textSize="13sp"
+                        android:gravity="center"
                         android:layout_marginTop="4dp"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -145,7 +149,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Security Analysis Details"
+                android:text="Observable Security Indicators"
                 android:textColor="@color/text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold"
@@ -163,23 +167,24 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SSL Certificate"
+                    android:text="SSL Protocol"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:layout_centerVertical="true"/>
 
                 <TextView
+                    android:id="@+id/txtWebSslStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Valid"
-                    android:textColor="#00E676"
+                    android:text="Not Scanned"
+                    android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"/>
             </RelativeLayout>
 
-            <!-- Item 2: Trackers -->
+            <!-- Item 2: URL Pattern & Parameters -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
@@ -191,23 +196,24 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Trackers Found"
+                    android:text="URL Pattern &amp; Structure"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:layout_centerVertical="true"/>
 
                 <TextView
+                    android:id="@+id/txtWebTrackersStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="12 trackers"
-                    android:textColor="#FF3B30"
+                    android:text="Not Scanned"
+                    android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"/>
             </RelativeLayout>
 
-            <!-- Item 3: Cookies -->
+            <!-- Item 3: Domain / Host Format -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
@@ -219,23 +225,24 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Cookies"
+                    android:text="Domain Trust Indicator"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:layout_centerVertical="true"/>
 
                 <TextView
+                    android:id="@+id/txtWebCookiesStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="24 cookies"
-                    android:textColor="#FFC107"
+                    android:text="Not Scanned"
+                    android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"/>
             </RelativeLayout>
 
-            <!-- Item 4: Permissions -->
+            <!-- Item 4: Sandboxing -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
@@ -248,15 +255,16 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Permissions Requested"
+                    android:text="Browser Environment"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:layout_centerVertical="true"/>
 
                 <TextView
+                    android:id="@+id/txtWebPermissionsStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Safe"
+                    android:text="Sandboxed"
                     android:textColor="#00E676"
                     android:textSize="13sp"
                     android:textStyle="bold"
