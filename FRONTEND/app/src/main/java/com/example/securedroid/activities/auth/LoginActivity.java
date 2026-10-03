@@ -31,6 +31,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etEmail, etPassword;
     private MaterialButton btnLogin;
     private TextView txtRegister, txtForgot;
+    private ImageView btnServerSettings;
     private SessionManager sessionManager;
 
     @Override
@@ -55,6 +56,7 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         txtRegister = findViewById(R.id.txtRegister);
         txtForgot = findViewById(R.id.txtForgot);
+        btnServerSettings = findViewById(R.id.btnServerSettings);
     }
 
     private void setupListeners() {
@@ -69,6 +71,10 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         txtForgot.setOnClickListener(v -> showForgotPasswordDialog());
+
+        if (btnServerSettings != null) {
+            btnServerSettings.setOnClickListener(v -> showServerSettingsDialog(false, null));
+        }
     }
 
     private void showForgotPasswordDialog() {
@@ -112,6 +118,55 @@ public class LoginActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private void showServerSettingsDialog(boolean isError, String errorMsg) {
+        android.widget.EditText input = new android.widget.EditText(this);
+        input.setTextColor(0xFFFFFFFF);
+        input.setHintTextColor(0xFF888888);
+        String currentIp = sessionManager.getServerIp();
+        if (currentIp == null || currentIp.isEmpty()) {
+            currentIp = "10.236.67.167";
+        }
+        input.setText(currentIp);
+        input.setHint("e.g. 10.236.67.167 or 127.0.0.1");
+
+        android.widget.FrameLayout container = new android.widget.FrameLayout(this);
+        android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        params.leftMargin = (int) (20 * getResources().getDisplayMetrics().density);
+        params.rightMargin = (int) (20 * getResources().getDisplayMetrics().density);
+        input.setLayoutParams(params);
+        container.addView(input);
+
+        String msg = "Current Target: " + ApiClient.getBaseUrl() + "\n\n"
+                + (isError && errorMsg != null ? "Error: " + errorMsg + "\n\n" : "")
+                + "• USB Mode: Run in PowerShell:\n   adb reverse tcp:8000 tcp:8000\n   (Use IP: 127.0.0.1)\n\n"
+                + "• Wi-Fi Mode: Ensure phone & PC are on the same Wi-Fi.\n   (Default PC Wi-Fi IP: 10.236.67.167)";
+
+        new AlertDialog.Builder(this)
+                .setTitle(isError ? "Server Connection Failed" : "Server Configuration")
+                .setMessage(msg)
+                .setView(container)
+                .setPositiveButton("Save IP & Retry", (dialog, which) -> {
+                    String enteredIp = input.getText().toString().trim();
+                    if (!enteredIp.isEmpty()) {
+                        sessionManager.saveServerIp(enteredIp);
+                        ApiClient.setServerIp(enteredIp);
+                        Toast.makeText(this, "Server IP updated to: " + enteredIp, Toast.LENGTH_SHORT).show();
+                        performLogin();
+                    }
+                })
+                .setNeutralButton("Use USB (127.0.0.1)", (dialog, which) -> {
+                    sessionManager.saveServerIp("127.0.0.1");
+                    ApiClient.setServerIp("127.0.0.1");
+                    Toast.makeText(this, "Set to USB localhost (127.0.0.1)", Toast.LENGTH_SHORT).show();
+                    performLogin();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     private void performLogin() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
@@ -151,7 +206,9 @@ public class LoginActivity extends AppCompatActivity {
             public void onFailure(Call<TokenResponse> call, Throwable t) {
                 btnLogin.setEnabled(true);
                 btnLogin.setText("LOGIN");
-                Toast.makeText(LoginActivity.this, "Cannot connect to server. Please check backend connection.", Toast.LENGTH_LONG).show();
+                String err = (t != null && t.getMessage() != null) ? t.getMessage() : "Network timeout";
+                Toast.makeText(LoginActivity.this, "Cannot connect to server: " + err, Toast.LENGTH_SHORT).show();
+                showServerSettingsDialog(true, err);
             }
         });
     }

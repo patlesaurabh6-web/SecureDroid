@@ -137,8 +137,40 @@ public class SessionManager {
         }
     }
 
+    // App Risk Score caching (stores backend RiskScoreModel evaluated by calculate_privacy_risk)
+    public void saveAppRiskScore(String packageName, com.example.securedroid.models.RiskScoreModel model) {
+        if (packageName == null || model == null) return;
+        String json = new com.google.gson.Gson().toJson(model);
+        editor.putString("app_risk_model_" + packageName, json);
+        editor.apply();
+    }
+
+    public com.example.securedroid.models.RiskScoreModel getAppRiskScore(String packageName) {
+        if (packageName == null) return null;
+        String json = pref.getString("app_risk_model_" + packageName, null);
+        if (json == null) return null;
+        try {
+            return new com.google.gson.Gson().fromJson(json, com.example.securedroid.models.RiskScoreModel.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public void saveServerIp(String ip) {
+        editor.putString("server_ip", ip);
+        editor.apply();
+    }
+
+    public String getServerIp() {
+        return pref.getString("server_ip", null);
+    }
+
     public void logout() {
+        String savedIp = getServerIp();
         editor.clear();
+        if (savedIp != null) {
+            editor.putString("server_ip", savedIp);
+        }
         editor.apply();
     }
 }

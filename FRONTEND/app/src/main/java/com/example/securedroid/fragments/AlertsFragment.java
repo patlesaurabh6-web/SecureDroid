@@ -69,8 +69,10 @@ public class AlertsFragment extends Fragment {
     }
 
     private void loadFallback() {
-        DashboardRepository repo = new DashboardRepository();
-        adapter = new AlertAdapter(repo.getRecentAlerts());
+        if (getContext() == null) return;
+        com.example.securedroid.utils.SessionManager sm = new com.example.securedroid.utils.SessionManager(getContext());
+        List<AlertModel> localAlerts = sm.getPrivacyAlerts();
+        adapter = new AlertAdapter(localAlerts != null ? localAlerts : new java.util.ArrayList<>());
         if (rvAlerts != null) rvAlerts.setAdapter(adapter);
     }
 }

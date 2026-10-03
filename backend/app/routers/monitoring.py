@@ -31,12 +31,16 @@ def record_privacy_event(
         if app:
             app_id = app.id
 
+    desc = event_in.description or event_in.message or event_in.title or "Privacy event recorded"
+    sev = event_in.severity or event_in.risk_level or "INFO"
+    etype = event_in.event_type or "Permission Change"
+
     event = PrivacyEvent(
         user_id=current_user.id,
         application_id=app_id,
-        event_type=event_in.event_type,
-        description=event_in.description,
-        severity=event_in.severity
+        event_type=etype,
+        description=desc,
+        severity=sev
     )
     db.add(event)
     db.commit()

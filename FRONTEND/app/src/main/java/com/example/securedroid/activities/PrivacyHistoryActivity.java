@@ -66,8 +66,18 @@ public class PrivacyHistoryActivity extends AppCompatActivity {
     }
 
     private void loadFallback() {
-        DashboardRepository repo = new DashboardRepository();
-        adapter = new TimelineAdapter(repo.getPrivacyTimeline());
+        com.example.securedroid.utils.SessionManager sm = new com.example.securedroid.utils.SessionManager(this);
+        List<com.example.securedroid.models.AlertModel> localAlerts = sm.getPrivacyAlerts();
+        List<TimelineModel> timelineList = new ArrayList<>();
+        if (localAlerts != null) {
+            for (com.example.securedroid.models.AlertModel a : localAlerts) {
+                int score = 80;
+                if (a.getCurrentRisk() != null && a.getCurrentRisk().contains("HIGH")) score = 30;
+                else if (a.getCurrentRisk() != null && a.getCurrentRisk().contains("MEDIUM")) score = 60;
+                timelineList.add(new TimelineModel(a.getTitle() != null ? a.getTitle() : "Permission Change", score, a.getCurrentRisk() != null ? a.getCurrentRisk() : "LOW"));
+            }
+        }
+        adapter = new TimelineAdapter(timelineList);
         if (rvHistory != null) rvHistory.setAdapter(adapter);
     }
 }

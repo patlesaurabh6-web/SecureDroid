@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.securedroid.R;
 import com.example.securedroid.api.ApiClient;
 import com.example.securedroid.api.dto.AppAnalysisRequest;
+import com.example.securedroid.models.RecommendationModel;
 import com.example.securedroid.models.RiskScoreModel;
 import com.google.android.material.button.MaterialButton;
 
@@ -144,154 +145,158 @@ public class AppDetailsActivity extends AppCompatActivity {
         if (txtAppDetailsPkg != null) txtAppDetailsPkg.setText(packageName);
         if (txtAppDetailsVersion != null) txtAppDetailsVersion.setText("Version " + versionName);
 
-        // Perform local and backend analysis
+        // Perform analysis using authoritative backend RiskScoreModel
         performRiskAnalysis(permissions);
     }
 
     private void performRiskAnalysis(List<String> permissions) {
-        // Calculate deterministic explainable breakdown
-        boolean hasCamera = false;
-        boolean hasMic = false;
-        boolean hasLocation = false;
-        boolean hasContacts = false;
-        boolean hasSms = false;
-        boolean hasStorage = false;
-        boolean hasPhone = false;
-
-        List<BreakdownItem> breakdownItems = new ArrayList<>();
-
-        for (String p : permissions) {
-            String u = p.toUpperCase();
-            if (u.contains("CAMERA")) hasCamera = true;
-            if (u.contains("RECORD_AUDIO") || u.contains("MICROPHONE")) hasMic = true;
-            if (u.contains("LOCATION")) hasLocation = true;
-            if (u.contains("CONTACT")) hasContacts = true;
-            if (u.contains("SMS")) hasSms = true;
-            if (u.contains("STORAGE") || u.contains("MEDIA")) hasStorage = true;
-            if (u.contains("READ_PHONE_STATE") || u.contains("CALL_LOG")) hasPhone = true;
-        }
-
-        int rawScore = 0;
-        if (hasCamera) rawScore += 25;
-        if (hasMic) rawScore += 25;
-        if (hasLocation) rawScore += 20;
-        if (hasContacts) rawScore += 20;
-        if (hasSms) rawScore += 25;
-        if (hasStorage) rawScore += 10;
-        if (hasPhone) rawScore += 15;
-
-        // Combination risks & Plain-English breakdowns
-        if (hasCamera && hasLocation) {
-            rawScore += 15;
-            breakdownItems.add(new BreakdownItem("📸 Camera & 📍 Location Combined", 
-                    "This app can record pictures and pinpoint your precise GPS coordinates simultaneously. Photos and videos could be geotagged with your exact location.", 
-                    0xFFFF3B30));
-        } else if (hasCamera) {
-            breakdownItems.add(new BreakdownItem("📸 Camera Access", 
-                    "This app has permission to capture photos and video streams from your device sensors.", 
-                    0xFFFF9800));
-        }
-
-        if (hasMic && hasLocation) {
-            rawScore += 10;
-            breakdownItems.add(new BreakdownItem("🎙️ Microphone & 📍 Location Combined", 
-                    "Simultaneous audio recording and geolocation access allows tracking ambient conversations and physical location.", 
-                    0xFFFF3B30));
-        } else if (hasMic) {
-            breakdownItems.add(new BreakdownItem("🎙️ Microphone Access", 
-                    "This app can record ambient audio and voice conversations using your device microphone.", 
-                    0xFFFF9800));
-        }
-
-        if (hasSms) {
-            breakdownItems.add(new BreakdownItem("💬 SMS Messages & OTPs", 
-                    "The app can read sensitive incoming SMS messages, which could expose 2-Factor Authentication (2FA) verification codes and private texts.", 
-                    0xFFFF3B30));
-        }
-
-        if (hasContacts) {
-            breakdownItems.add(new BreakdownItem("📖 Address Book & Contacts", 
-                    "The app has permission to inspect your private contact list, including phone numbers, names, and email addresses.", 
-                    0xFFFF9800));
-        }
-
-        if (hasLocation && !hasCamera && !hasMic) {
-            breakdownItems.add(new BreakdownItem("📍 Geolocation Tracking", 
-                    "The app tracks your live GPS coordinates and movement patterns throughout the day.", 
-                    0xFFFFC107));
-        }
-
-        if (hasStorage) {
-            breakdownItems.add(new BreakdownItem("🗂️ Device Storage & Media", 
-                    "The app has access to read or write files, photos, and documents stored on your device storage.", 
-                    0xFFFFC107));
-        }
-
-        if (hasPhone) {
-            breakdownItems.add(new BreakdownItem("📞 Phone State & Identity", 
-                    "The app can identify your unique device ID, active cellular network, and incoming call activity.", 
-                    0xFFFFC107));
-        }
-
-        // Cap and categorize
-        int score = Math.min(100, Math.max(10, rawScore));
-        String level;
-        int color;
-        String headline;
-        String summary;
-        String recommendation;
-
-        if (score >= 65 || (hasCamera && hasLocation) || hasSms || (hasCamera && hasMic)) {
-            level = "HIGH RISK";
-            color = 0xFFFF3B30; // Vibrant Red
-            headline = "⚠️ Critical Privacy Risk Detected";
-            summary = "This application requests multiple sensitive permissions (Camera, Mic, SMS, or Location) that can access your private data.";
-            recommendation = "• Revoke Camera & Location when not in active use.\n• Disable Background App Refresh in Android Settings.\n• Ensure this application is from a verified trusted developer.";
-        } else if (score >= 35 || hasCamera || hasMic || hasLocation || hasStorage) {
-            level = "MEDIUM RISK";
-            color = 0xFFFFC107; // Vibrant Amber
-            headline = "⚠️ Moderate Privacy Risk";
-            summary = "This application requests sensitive permissions like Location or Storage. Audit its background activity.";
-            recommendation = "• Set Location access to 'While using the app only'.\n• Regularly audit if storage access is required for core functionality.";
-        } else {
-            level = "LOW RISK";
-            color = 0xFF00E676; // Vibrant Green
-            headline = "✅ Safe & Protected Application";
-            summary = "This application only utilizes standard utility permissions (Network, Vibration) with zero personal sensor access.";
-            recommendation = "• No critical actions required.\n• Application follows baseline Android security and privacy standards.";
-
-            breakdownItems.add(new BreakdownItem("🔒 Zero Sensitive Sensors", 
-                    "This app does not request access to your Camera, Microphone, GPS Location, Contacts, or SMS messages.", 
-                    0xFF00E676));
-            breakdownItems.add(new BreakdownItem("🌐 Standard Network Operations", 
-                    "Uses standard internet connectivity and device vibration without accessing personal files.", 
-                    0xFF00E676));
-        }
-
-        // Render Circular score with matching ring
-        renderCircularScore(score, level, color, headline, summary, recommendation);
-
-        // Render Breakdown items
-        renderBreakdownList(breakdownItems);
-
-        // Render Permissions list
+        // Render requested permissions list
         renderPermissionsList(permissions);
 
-        // Also ping backend for asynchronous AI/server analysis sync
+        // Check if authoritative RiskScoreModel was already computed & cached by backend
+        com.example.securedroid.utils.SessionManager sessionManager = com.example.securedroid.utils.SessionManager.getInstance(this);
+        RiskScoreModel cachedModel = sessionManager.getAppRiskScore(packageName);
+        if (cachedModel != null) {
+            applyRiskScoreModel(cachedModel, permissions);
+        } else {
+            showLoadingState();
+        }
+
+        // Query backend risk engine (calculate_privacy_risk)
         try {
             AppAnalysisRequest req = new AppAnalysisRequest(packageName, appName, permissions);
             ApiClient.getAnalysisApi(this).analyzeApplication(req).enqueue(new Callback<RiskScoreModel>() {
                 @Override
                 public void onResponse(Call<RiskScoreModel> call, Response<RiskScoreModel> response) {
-                    // Backend analysis synced
+                    if (response.isSuccessful() && response.body() != null) {
+                        RiskScoreModel model = response.body();
+                        sessionManager.saveAppRiskScore(packageName, model);
+                        applyRiskScoreModel(model, permissions);
+                    } else if (cachedModel == null) {
+                        showBackendUnavailableState();
+                    }
                 }
 
                 @Override
                 public void onFailure(Call<RiskScoreModel> call, Throwable t) {
-                    // Fallback local analysis active
+                    if (cachedModel == null) {
+                        showBackendUnavailableState();
+                    }
                 }
             });
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            if (cachedModel == null) {
+                showBackendUnavailableState();
+            }
+        }
+    }
+
+    private void showLoadingState() {
+        if (txtAppScoreNumber != null) {
+            txtAppScoreNumber.setText("--");
+            txtAppScoreNumber.setTextColor(0xFF90A4AE);
+        }
+        if (txtAppScoreLevel != null) {
+            txtAppScoreLevel.setText("ANALYZING");
+            txtAppScoreLevel.setTextColor(0xFF90A4AE);
+        }
+        if (txtAppScoreHeadline != null) {
+            txtAppScoreHeadline.setText("Evaluating Application Privacy...");
+        }
+        if (txtAppScoreSummaryText != null) {
+            txtAppScoreSummaryText.setText("Submitting permission declarations to SecureDroid backend risk engine...");
+        }
+        if (txtAppRecommendation != null) {
+            txtAppRecommendation.setText("• Running authoritative risk evaluation via calculate_privacy_risk().");
+        }
+        if (layoutAppScoreCircle != null) {
+            GradientDrawable circleBg = new GradientDrawable();
+            circleBg.setShape(GradientDrawable.OVAL);
+            circleBg.setColor(0xFF1B2B40);
+            int strokeWidthPx = (int) (7 * getResources().getDisplayMetrics().density);
+            circleBg.setStroke(strokeWidthPx, 0xFF90A4AE);
+            layoutAppScoreCircle.setBackground(circleBg);
+        }
+    }
+
+    private void showBackendUnavailableState() {
+        if (txtAppScoreNumber != null) {
+            txtAppScoreNumber.setText("--");
+            txtAppScoreNumber.setTextColor(0xFF78909C);
+        }
+        if (txtAppScoreLevel != null) {
+            txtAppScoreLevel.setText("SERVER OFFLINE");
+            txtAppScoreLevel.setTextColor(0xFF78909C);
+        }
+        if (txtAppScoreHeadline != null) {
+            txtAppScoreHeadline.setText("Backend Risk Engine Unavailable");
+        }
+        if (txtAppScoreSummaryText != null) {
+            txtAppScoreSummaryText.setText("Could not reach backend risk engine at http://127.0.0.1:8000. Start the backend server to calculate authoritative privacy risk.");
+        }
+        if (txtAppRecommendation != null) {
+            txtAppRecommendation.setText("• Start backend: uvicorn app.main:app --port 8000\n• If testing on physical phone: adb reverse tcp:8000 tcp:8000");
+        }
+        if (layoutAppScoreCircle != null) {
+            GradientDrawable circleBg = new GradientDrawable();
+            circleBg.setShape(GradientDrawable.OVAL);
+            circleBg.setColor(0xFF1B2B40);
+            int strokeWidthPx = (int) (7 * getResources().getDisplayMetrics().density);
+            circleBg.setStroke(strokeWidthPx, 0xFF78909C);
+            layoutAppScoreCircle.setBackground(circleBg);
+        }
+    }
+
+    private void applyRiskScoreModel(RiskScoreModel model, List<String> permissions) {
+        if (model == null) return;
+
+        int score = Math.round(model.getRiskScore());
+        String level = model.getRiskLevel() != null ? model.getRiskLevel().toUpperCase() : "LOW";
+        String summary = model.getAnalysisSummary() != null ? model.getAnalysisSummary() : "";
+
+        int color;
+        String headline;
+        if ("CRITICAL".equalsIgnoreCase(level) || "HIGH".equalsIgnoreCase(level) || score >= 65) {
+            level = "HIGH RISK";
+            color = 0xFFFF3B30; // Vibrant Red
+            headline = "⚠️ Critical Privacy Risk Detected";
+        } else if ("MEDIUM".equalsIgnoreCase(level) || score >= 35) {
+            level = "MEDIUM RISK";
+            color = 0xFFFFC107; // Vibrant Amber
+            headline = "⚠️ Moderate Privacy Risk";
+        } else {
+            level = "LOW RISK";
+            color = 0xFF00E676; // Vibrant Green
+            headline = "✅ Safe & Protected Application";
+        }
+
+        // Recommendations from backend RiskScoreModel
+        StringBuilder recBuilder = new StringBuilder();
+        if (model.getRecommendations() != null && !model.getRecommendations().isEmpty()) {
+            for (RecommendationModel rec : model.getRecommendations()) {
+                if (rec.getTitle() != null && !rec.getTitle().isEmpty()) {
+                    recBuilder.append("• ").append(rec.getTitle());
+                    if (rec.getRecommendation() != null && !rec.getRecommendation().isEmpty()) {
+                        recBuilder.append(": ").append(rec.getRecommendation());
+                    }
+                    recBuilder.append("\n");
+                }
+            }
+        }
+        String recommendation = recBuilder.length() > 0 ? recBuilder.toString().trim() : ("• Privacy evaluation provided by SecureDroid backend risk engine.");
+
+        // Reasons & Breakdown from backend RiskScoreModel
+        List<BreakdownItem> breakdownItems = new ArrayList<>();
+        if (model.getReasons() != null && !model.getReasons().isEmpty()) {
+            for (String reason : model.getReasons()) {
+                breakdownItems.add(new BreakdownItem("Privacy Risk Factor", reason, color));
+            }
+        } else {
+            breakdownItems.add(new BreakdownItem("Authoritative Evaluation", summary.isEmpty() ? "No sensitive risk factors detected." : summary, color));
+        }
+
+        renderCircularScore(score, level, color, headline, summary, recommendation);
+        renderBreakdownList(breakdownItems);
     }
 
     private void renderCircularScore(int score, String level, int targetColor, String headline, String summary, String recommendation) {

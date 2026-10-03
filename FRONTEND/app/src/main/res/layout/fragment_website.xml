@@ -156,21 +156,27 @@
                 android:layout_marginTop="20dp" />
 
             <!-- Item 1: SSL -->
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="wrap_content"
+                android:minHeight="52dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:background="@drawable/bg_glass_card"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
                 android:layout_marginTop="12dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="SSL Protocol"
                     android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:layout_centerVertical="true"/>
+                    android:textSize="14sp"
+                    android:layout_marginEnd="8dp"/>
 
                 <TextView
                     android:id="@+id/txtWebSslStatus"
@@ -180,26 +186,31 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"/>
-            </RelativeLayout>
+                    android:gravity="end"/>
+            </LinearLayout>
 
             <!-- Item 2: URL Pattern & Parameters -->
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="wrap_content"
+                android:minHeight="52dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:background="@drawable/bg_glass_card"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
                 android:layout_marginTop="8dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="URL Pattern &amp; Structure"
                     android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:layout_centerVertical="true"/>
+                    android:textSize="14sp"
+                    android:layout_marginEnd="8dp"/>
 
                 <TextView
                     android:id="@+id/txtWebTrackersStatus"
@@ -209,26 +220,31 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"/>
-            </RelativeLayout>
+                    android:gravity="end"/>
+            </LinearLayout>
 
             <!-- Item 3: Domain / Host Format -->
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="wrap_content"
+                android:minHeight="52dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:background="@drawable/bg_glass_card"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
                 android:layout_marginTop="8dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="Domain Trust Indicator"
                     android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:layout_centerVertical="true"/>
+                    android:textSize="14sp"
+                    android:layout_marginEnd="8dp"/>
 
                 <TextView
                     android:id="@+id/txtWebCookiesStatus"
@@ -238,27 +254,31 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"/>
-            </RelativeLayout>
+                    android:gravity="end"/>
+            </LinearLayout>
 
             <!-- Item 4: Sandboxing -->
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="wrap_content"
+                android:minHeight="52dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:background="@drawable/bg_glass_card"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="80dp">
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_marginTop="8dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="Browser Environment"
                     android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:layout_centerVertical="true"/>
+                    android:textSize="14sp"
+                    android:layout_marginEnd="8dp"/>
 
                 <TextView
                     android:id="@+id/txtWebPermissionsStatus"
@@ -268,9 +288,81 @@
                     android:textColor="#00E676"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"/>
-            </RelativeLayout>
+                    android:gravity="end"/>
+            </LinearLayout>
+
+            <!-- Risk Explanation & Recommendation Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layoutWebExplanationCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="#121B2D"
+                app:strokeColor="#1E2B45"
+                app:strokeWidth="1.5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Website Risk Explanation Report"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/txtWebExplanation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enter a URL and tap Scan to generate a technical security breakdown."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp"
+                        android:layout_marginTop="6dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Actionable Recommendation"
+                        android:textColor="#1E80FF"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="12dp"/>
+
+                    <TextView
+                        android:id="@+id/txtWebRecommendation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Verify website domain and never input sensitive credentials on unencrypted or unverified websites."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Scan History Section -->
+            <TextView
+                android:id="@+id/txtWebHistoryHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Recent Website Scans"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp" />
+
+            <LinearLayout
+                android:id="@+id/layoutWebHistoryList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="80dp"/>
 
         </LinearLayout>
     </ScrollView>

@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +23,7 @@ import com.example.securedroid.utils.SessionManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class WebsiteFragment extends Fragment {
@@ -36,6 +38,11 @@ public class WebsiteFragment extends Fragment {
     private TextView txtWebTrackersStatus;
     private TextView txtWebCookiesStatus;
     private TextView txtWebPermissionsStatus;
+
+    private TextView txtWebExplanation;
+    private TextView txtWebRecommendation;
+    private TextView txtWebHistoryHeader;
+    private LinearLayout layoutWebHistoryList;
 
     private SessionManager sessionManager;
 
@@ -63,11 +70,17 @@ public class WebsiteFragment extends Fragment {
         txtWebCookiesStatus = view.findViewById(R.id.txtWebCookiesStatus);
         txtWebPermissionsStatus = view.findViewById(R.id.txtWebPermissionsStatus);
 
+        txtWebExplanation = view.findViewById(R.id.txtWebExplanation);
+        txtWebRecommendation = view.findViewById(R.id.txtWebRecommendation);
+        txtWebHistoryHeader = view.findViewById(R.id.txtWebHistoryHeader);
+        layoutWebHistoryList = view.findViewById(R.id.layoutWebHistoryList);
+
         if (btnScan != null) {
             btnScan.setOnClickListener(v -> scanWebsite());
         }
 
         loadLatestScanIfExists();
+        renderHistoryList();
     }
 
     private void loadLatestScanIfExists() {
@@ -77,6 +90,93 @@ public class WebsiteFragment extends Fragment {
                 etWebsiteUrl.setText(latest.getUrl());
                 displayScanResult(latest);
             }
+        }
+    }
+
+    private void renderHistoryList() {
+        if (layoutWebHistoryList == null || sessionManager == null) return;
+        layoutWebHistoryList.removeAllViews();
+
+        List<WebsiteModel> history = sessionManager.getWebsiteScans();
+        if (history == null || history.isEmpty()) {
+            if (txtWebHistoryHeader != null) txtWebHistoryHeader.setVisibility(View.GONE);
+            return;
+        }
+
+        if (txtWebHistoryHeader != null) txtWebHistoryHeader.setVisibility(View.VISIBLE);
+
+        for (WebsiteModel item : history) {
+            LinearLayout itemRow = new LinearLayout(getContext());
+            itemRow.setOrientation(LinearLayout.VERTICAL);
+            itemRow.setBackgroundResource(R.drawable.bg_glass_card);
+            itemRow.setPadding(
+                    (int) (14 * getResources().getDisplayMetrics().density),
+                    (int) (12 * getResources().getDisplayMetrics().density),
+                    (int) (14 * getResources().getDisplayMetrics().density),
+                    (int) (12 * getResources().getDisplayMetrics().density)
+            );
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            lp.setMargins(0, 0, 0, (int) (10 * getResources().getDisplayMetrics().density));
+            itemRow.setLayoutParams(lp);
+
+            LinearLayout topRow = new LinearLayout(getContext());
+            topRow.setOrientation(LinearLayout.HORIZONTAL);
+            topRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+            TextView txtUrl = new TextView(getContext());
+            txtUrl.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+            txtUrl.setText(item.getUrl());
+            txtUrl.setTextColor(Color.WHITE);
+            txtUrl.setTextSize(14);
+            txtUrl.setTypeface(null, android.graphics.Typeface.BOLD);
+            txtUrl.setSingleLine(true);
+            txtUrl.setEllipsize(android.text.TextUtils.TruncateAt.END);
+
+            int score = (int) item.getRiskScore();
+            TextView txtBadge = new TextView(getContext());
+            txtBadge.setText(item.getRiskLevel() != null ? item.getRiskLevel() + " (" + score + ")" : score + "/100");
+            txtBadge.setTextSize(11);
+            txtBadge.setTypeface(null, android.graphics.Typeface.BOLD);
+            txtBadge.setPadding(
+                    (int) (8 * getResources().getDisplayMetrics().density),
+                    (int) (3 * getResources().getDisplayMetrics().density),
+                    (int) (8 * getResources().getDisplayMetrics().density),
+                    (int) (3 * getResources().getDisplayMetrics().density)
+            );
+
+            if (score >= 80) {
+                txtBadge.setTextColor(Color.parseColor("#00E676"));
+                txtBadge.setBackgroundColor(0x2E00E676);
+            } else if (score >= 50) {
+                txtBadge.setTextColor(Color.parseColor("#FFD600"));
+                txtBadge.setBackgroundColor(0x2EFFD600);
+            } else {
+                txtBadge.setTextColor(Color.parseColor("#FF1744"));
+                txtBadge.setBackgroundColor(0x2EFF1744);
+            }
+
+            topRow.addView(txtUrl);
+            topRow.addView(txtBadge);
+
+            TextView txtTime = new TextView(getContext());
+            txtTime.setText(item.getDateTime() != null ? item.getDateTime() : "Scanned");
+            txtTime.setTextColor(Color.parseColor("#8E9AA8"));
+            txtTime.setTextSize(11);
+            txtTime.setPadding(0, (int) (4 * getResources().getDisplayMetrics().density), 0, 0);
+
+            itemRow.addView(topRow);
+            itemRow.addView(txtTime);
+
+            itemRow.setOnClickListener(v -> {
+                if (etWebsiteUrl != null) etWebsiteUrl.setText(item.getUrl());
+                displayScanResult(item);
+                Toast.makeText(getContext(), "Loaded scan for " + item.getDomain(), Toast.LENGTH_SHORT).show();
+            });
+
+            layoutWebHistoryList.addView(itemRow);
         }
     }
 
@@ -104,7 +204,7 @@ public class WebsiteFragment extends Fragment {
         String scheme = uri.getScheme() != null ? uri.getScheme().toLowerCase() : "unknown";
         String host = uri.getHost() != null ? uri.getHost().toLowerCase() : "";
         String path = uri.getPath() != null ? uri.getPath().toLowerCase() : "";
-        String query = uri.getQuery() != null ? uri.getQuery().toLowerCase() : "";
+        String query = uri.getQuery() != null ? queryStr(uri) : "";
 
         if (host.isEmpty()) {
             Toast.makeText(getContext(), "Unable to extract domain host from URL", Toast.LENGTH_SHORT).show();
@@ -202,15 +302,15 @@ public class WebsiteFragment extends Fragment {
         if (score >= 80) {
             riskLevel = "Safe / Low Risk";
             colorRes = Color.parseColor("#00E676");
-            recommendation = "Website exhibits standard security indicators. Safe to browse.";
+            recommendation = "• Connection is encrypted.\n• Domain format is standard.\n• Safe for regular web browsing.";
         } else if (score >= 50) {
             riskLevel = "Medium Risk";
             colorRes = Color.parseColor("#FFD600");
-            recommendation = "Exercise caution. Do not enter sensitive credentials unless verified.";
+            recommendation = "• Exercise caution.\n• Do not enter bank/personal credentials unless domain is independently verified.";
         } else {
             riskLevel = "High Risk";
             colorRes = Color.parseColor("#FF1744");
-            recommendation = "Avoid submitting personal data or credentials on this unverified or unencrypted site.";
+            recommendation = "• Avoid submitting passwords or credit card information.\n• Unencrypted or high-risk domain structure detected.";
         }
 
         if (txtWebScore != null) txtWebScore.setText(String.valueOf(score));
@@ -223,6 +323,12 @@ public class WebsiteFragment extends Fragment {
         }
         if (txtWebRiskSummary != null) {
             txtWebRiskSummary.setText(summary.toString().trim());
+        }
+        if (txtWebExplanation != null) {
+            txtWebExplanation.setText(summary.toString().trim() + "\nIndicators: " + indicators.toString().trim());
+        }
+        if (txtWebRecommendation != null) {
+            txtWebRecommendation.setText(recommendation);
         }
 
         String currentTime = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()).format(new Date());
@@ -239,13 +345,21 @@ public class WebsiteFragment extends Fragment {
         );
 
         sessionManager.addWebsiteScan(scanModel);
+        renderHistoryList();
         Toast.makeText(getContext(), "Scan complete: " + riskLevel, Toast.LENGTH_SHORT).show();
+    }
+
+    private String queryStr(Uri uri) {
+        try {
+            return uri.getQuery() != null ? uri.getQuery().toLowerCase() : "";
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private void displayScanResult(WebsiteModel model) {
         if (model == null) return;
         int score = (int) model.getRiskScore();
-        if (score == 0) score = 85;
 
         int colorRes;
         if (score >= 80) {
@@ -266,6 +380,14 @@ public class WebsiteFragment extends Fragment {
         }
         if (txtWebRiskSummary != null && model.getSummary() != null) {
             txtWebRiskSummary.setText(model.getSummary());
+        }
+        if (txtWebExplanation != null) {
+            String exp = (model.getSummary() != null ? model.getSummary() : "") +
+                    (model.getDetectedIndicators() != null ? "\nIndicators: " + model.getDetectedIndicators() : "");
+            txtWebExplanation.setText(exp.trim());
+        }
+        if (txtWebRecommendation != null && model.getRecommendation() != null) {
+            txtWebRecommendation.setText(model.getRecommendation());
         }
 
         if (txtWebSslStatus != null) {

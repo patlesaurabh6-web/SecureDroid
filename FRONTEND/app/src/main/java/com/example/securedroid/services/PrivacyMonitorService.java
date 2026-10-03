@@ -65,9 +65,6 @@ public class PrivacyMonitorService extends Service {
                     removedPerms.removeAll(newSet);
 
                     if (!addedPerms.isEmpty() || !removedPerms.isEmpty()) {
-                        String prevRisk = computeRiskLevel(oldPerms);
-                        String currRisk = computeRiskLevel(currentPerms);
-
                         StringBuilder changeSummary = new StringBuilder();
                         if (!addedPerms.isEmpty()) {
                             changeSummary.append("Added: ").append(formatPerms(addedPerms)).append(" ");
@@ -76,64 +73,65 @@ public class PrivacyMonitorService extends Service {
                             changeSummary.append("Removed: ").append(formatPerms(removedPerms));
                         }
 
-                        String title = app.getApplicationName() + " - Permission Change";
-                        String explanation = "Detected modification in declared permissions for " + app.getApplicationName() + ". Risk changed from " + prevRisk + " to " + currRisk + ".";
+                        // Query authoritative backend risk engine (calculate_privacy_risk)
+                        try {
+                            com.example.securedroid.api.dto.AppAnalysisRequest req = new com.example.securedroid.api.dto.AppAnalysisRequest(
+                                    pkg,
+                                    app.getApplicationName(),
+                                    app.getVersionName(),
+                                    app.getDeveloper(),
+                                    currentPerms
+                            );
 
-                        AlertModel alert = new AlertModel(
-                                (int) (System.currentTimeMillis() % 100000),
-                                title,
-                                changeSummary.toString().trim(),
-                                currRisk,
-                                currentTime,
-                                app.getApplicationName(),
-                                app.getPackageName(),
-                                "Permission Change Detected",
-                                prevRisk,
-                                currRisk,
-                                changeSummary.toString().trim(),
-                                explanation
-                        );
+                            retrofit2.Response<com.example.securedroid.models.RiskScoreModel> resp = com.example.securedroid.api.ApiClient
+                                    .getAnalysisApi(getApplicationContext())
+                                    .analyzeApplication(req)
+                                    .execute();
 
-                        sessionManager.addPrivacyAlert(alert);
+                            String currRisk = "MONITORED";
+                            if (resp.isSuccessful() && resp.body() != null) {
+                                com.example.securedroid.models.RiskScoreModel model = resp.body();
+                                currRisk = model.getRiskLevel() != null ? model.getRiskLevel().toUpperCase() : "MONITORED";
+                                sessionManager.saveAppRiskScore(pkg, model);
+                            }
 
-                        NotificationHelper.showPrivacyAlert(
-                                getApplicationContext(),
-                                "Privacy Alert: " + app.getApplicationName(),
-                                "Permission Change: " + changeSummary + " | Risk: " + currRisk
-                        );
+                            String title = app.getApplicationName() + " - Permission Change";
+                            String explanation = "Detected modification in declared permissions for " + app.getApplicationName() + ". Risk evaluated by backend engine as " + currRisk + ".";
 
-                        // Update stored snapshot
-                        sessionManager.saveAppPermissionsSnapshot(pkg, currentPerms);
+                            AlertModel alert = new AlertModel(
+                                    (int) (System.currentTimeMillis() % 100000),
+                                    title,
+                                    changeSummary.toString().trim(),
+                                    currRisk,
+                                    currentTime,
+                                    app.getApplicationName(),
+                                    app.getPackageName(),
+                                    "Permission Change Detected",
+                                    "PREVIOUS",
+                                    currRisk,
+                                    changeSummary.toString().trim(),
+                                    explanation
+                            );
+
+                            sessionManager.addPrivacyAlert(alert);
+
+                            NotificationHelper.showPrivacyAlert(
+                                    getApplicationContext(),
+                                    "Privacy Alert: " + app.getApplicationName(),
+                                    "Permission Change: " + changeSummary + " | Risk: " + currRisk
+                            );
+
+                            // Update stored snapshot
+                            sessionManager.saveAppPermissionsSnapshot(pkg, currentPerms);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error evaluating backend risk for permission change: " + e.getMessage());
+                        }
                     }
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error in permission audit: " + e.getMessage(), e);
             }
         }).start();
-    }
-
-    private String computeRiskLevel(List<String> perms) {
-        if (perms == null) return "LOW";
-        boolean hasCamera = false;
-        boolean hasMic = false;
-        boolean hasLocation = false;
-        boolean hasSms = false;
-
-        for (String p : perms) {
-            String pUpper = p.toUpperCase();
-            if (pUpper.contains("CAMERA")) hasCamera = true;
-            if (pUpper.contains("RECORD_AUDIO") || pUpper.contains("MICROPHONE")) hasMic = true;
-            if (pUpper.contains("LOCATION")) hasLocation = true;
-            if (pUpper.contains("SMS") || pUpper.contains("CONTACT")) hasSms = true;
-        }
-
-        if ((hasCamera && hasLocation) || (hasCamera && hasMic) || (hasSms && hasLocation)) {
-            return "HIGH";
-        } else if (hasCamera || hasMic || hasLocation || hasSms) {
-            return "MEDIUM";
-        } else {
-            return "LOW";
-        }
     }
 
     private String formatPerms(Set<String> perms) {

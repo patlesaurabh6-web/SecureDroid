@@ -28,6 +28,22 @@ public class ApiClient {
     }
 
     public static synchronized Retrofit getClient(Context context) {
+        if (context != null) {
+            String savedIp = com.example.securedroid.utils.SessionManager.getInstance(context).getServerIp();
+            if (savedIp != null && !savedIp.trim().isEmpty()) {
+                String targetUrl;
+                if (savedIp.startsWith("http://") || savedIp.startsWith("https://")) {
+                    targetUrl = savedIp.endsWith("/") ? savedIp : savedIp + "/";
+                } else {
+                    targetUrl = "http://" + savedIp.trim() + ":8000/api/";
+                }
+                if (!targetUrl.equals(BASE_URL)) {
+                    BASE_URL = targetUrl;
+                    retrofit = null;
+                }
+            }
+        }
+
         if (retrofit == null) {
             HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
             logging.setLevel(HttpLoggingInterceptor.Level.BODY);

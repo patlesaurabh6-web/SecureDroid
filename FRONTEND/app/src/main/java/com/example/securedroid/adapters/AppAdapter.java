@@ -71,31 +71,25 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
             }
         }
 
-        // Calculate dynamic risk level
-        boolean hasCamera = false;
-        boolean hasMic = false;
-        boolean hasLocation = false;
+        // Authoritative risk level from backend RiskScoreModel
+        String riskLevel = com.example.securedroid.fragments.AppsFragment.getAppRiskLevel(context, app);
 
-        if (app.getPermissions() != null) {
-            for (String p : app.getPermissions()) {
-                if (p.contains("CAMERA")) hasCamera = true;
-                if (p.contains("RECORD_AUDIO")) hasMic = true;
-                if (p.contains("ACCESS_FINE_LOCATION") || p.contains("ACCESS_COARSE_LOCATION")) hasLocation = true;
-            }
-        }
-
-        if (hasCamera && hasLocation) {
+        if ("HIGH".equalsIgnoreCase(riskLevel) || "CRITICAL".equalsIgnoreCase(riskLevel)) {
             holder.txtAppRiskBadge.setText("High Risk");
             holder.txtAppRiskBadge.setTextColor(0xFFFF3B30);
             holder.txtAppRiskBadge.setBackgroundColor(0x2EFF3B30);
-        } else if (hasCamera || hasMic || hasLocation) {
+        } else if ("MEDIUM".equalsIgnoreCase(riskLevel)) {
             holder.txtAppRiskBadge.setText("Medium Risk");
             holder.txtAppRiskBadge.setTextColor(0xFFFFC107);
             holder.txtAppRiskBadge.setBackgroundColor(0x2EFFC107);
-        } else {
+        } else if ("LOW".equalsIgnoreCase(riskLevel) || "SAFE".equalsIgnoreCase(riskLevel)) {
             holder.txtAppRiskBadge.setText("Low Risk");
             holder.txtAppRiskBadge.setTextColor(0xFF00E676);
             holder.txtAppRiskBadge.setBackgroundColor(0x2E00E676);
+        } else {
+            holder.txtAppRiskBadge.setText("Auditing...");
+            holder.txtAppRiskBadge.setTextColor(0xFF90A4AE);
+            holder.txtAppRiskBadge.setBackgroundColor(0x2E90A4AE);
         }
 
         holder.itemView.setOnClickListener(v -> {

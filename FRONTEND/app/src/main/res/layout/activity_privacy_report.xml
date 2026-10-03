@@ -7,43 +7,45 @@
     android:background="@color/background">
 
     <!-- Header -->
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:gravity="center_vertical">
+        android:paddingEnd="16dp">
 
         <ImageView
             android:id="@+id/btnBack"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_arrow_forward"
-            android:rotation="180"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="6dp"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back"
             app:tint="@color/text_primary"
-            android:layout_centerVertical="true"/>
+            android:background="?attr/selectableItemBackgroundBorderless"/>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Privacy Report"
             android:textColor="@color/text_primary"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:layout_toEndOf="@id/btnBack"
-            android:layout_marginStart="16dp"
-            android:layout_centerVertical="true"/>
+            android:fontFamily="@font/poppins_bold"
+            android:layout_marginStart="12dp"
+            android:singleLine="true"/>
 
         <Spinner
             android:id="@+id/spinnerTimeRange"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
+            android:layout_height="36dp"
             android:background="@drawable/bg_outline_button"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"/>
-    </RelativeLayout>
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:gravity="center_vertical"/>
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -108,11 +110,11 @@
                     <!-- Weekly Bar Chart Visual -->
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="120dp"
+                        android:layout_height="130dp"
                         android:orientation="horizontal"
                         android:gravity="bottom"
                         android:weightSum="7"
-                        android:layout_marginTop="20dp">
+                        android:layout_marginTop="16dp">
 
                         <!-- Mon -->
                         <LinearLayout
@@ -121,10 +123,19 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="bottom|center_horizontal">
+                            <TextView
+                                android:id="@+id/txtScoreMon"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:layout_marginBottom="4dp"/>
                             <View
+                                android:id="@+id/barMon"
                                 android:layout_width="14dp"
                                 android:layout_height="60dp"
-                                android:background="#00E676"/>
+                                android:background="@drawable/bg_bar_rounded"/>
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -141,10 +152,19 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="bottom|center_horizontal">
+                            <TextView
+                                android:id="@+id/txtScoreTue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:layout_marginBottom="4dp"/>
                             <View
+                                android:id="@+id/barTue"
                                 android:layout_width="14dp"
                                 android:layout_height="75dp"
-                                android:background="#00E676"/>
+                                android:background="@drawable/bg_bar_rounded"/>
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -161,10 +181,19 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="bottom|center_horizontal">
+                            <TextView
+                                android:id="@+id/txtScoreWed"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:layout_marginBottom="4dp"/>
                             <View
+                                android:id="@+id/barWed"
                                 android:layout_width="14dp"
                                 android:layout_height="40dp"
-                                android:background="#FF9500"/>
+                                android:background="@drawable/bg_bar_rounded"/>
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -181,10 +210,19 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="bottom|center_horizontal">
+                            <TextView
+                                android:id="@+id/txtScoreThu"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:layout_marginBottom="4dp"/>
                             <View
+                                android:id="@+id/barThu"
                                 android:layout_width="14dp"
                                 android:layout_height="80dp"
-                                android:background="#00E676"/>
+                                android:background="@drawable/bg_bar_rounded"/>
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -201,10 +239,19 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="bottom|center_horizontal">
+                            <TextView
+                                android:id="@+id/txtScoreFri"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:layout_marginBottom="4dp"/>
                             <View
+                                android:id="@+id/barFri"
                                 android:layout_width="14dp"
                                 android:layout_height="90dp"
-                                android:background="#00E676"/>
+                                android:background="@drawable/bg_bar_rounded"/>
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -221,10 +268,19 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="bottom|center_horizontal">
+                            <TextView
+                                android:id="@+id/txtScoreSat"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:layout_marginBottom="4dp"/>
                             <View
+                                android:id="@+id/barSat"
                                 android:layout_width="14dp"
                                 android:layout_height="50dp"
-                                android:background="#00E676"/>
+                                android:background="@drawable/bg_bar_rounded"/>
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -241,10 +297,19 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="bottom|center_horizontal">
+                            <TextView
+                                android:id="@+id/txtScoreSun"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:layout_marginBottom="4dp"/>
                             <View
+                                android:id="@+id/barSun"
                                 android:layout_width="14dp"
                                 android:layout_height="85dp"
-                                android:background="#00E676"/>
+                                android:background="@drawable/bg_bar_rounded"/>
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"

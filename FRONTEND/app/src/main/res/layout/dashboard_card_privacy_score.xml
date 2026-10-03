@@ -46,10 +46,30 @@
             android:layout_marginTop="24dp"
             android:background="@drawable/bg_score_circle">
 
+            <ImageView
+                android:id="@+id/imgScanRadar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/glow_circle"
+                android:alpha="0.4"
+                android:visibility="gone"/>
+
+            <ProgressBar
+                android:id="@+id/progressScanAudit"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                android:indeterminateTint="#1E80FF"
+                android:visibility="gone"/>
+
             <LinearLayout
+                android:id="@+id/layoutScoreText"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -58,17 +78,21 @@
                     android:layout_height="wrap_content"
                     android:text="82"
                     android:textColor="@android:color/white"
-                    android:textSize="42sp"
+                    android:textSize="40sp"
                     android:fontFamily="@font/poppins_bold"/>
 
                 <TextView
                     android:id="@+id/txtRiskLevel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="LOW RISK"
+                    android:maxWidth="130dp"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:text="LOW RISK\n(PROTECTED)"
                     android:textColor="#4CAF50"
                     android:textStyle="bold"
-                    android:textSize="14sp"/>
+                    android:lineSpacingExtra="2dp"
+                    android:textSize="11sp"/>
 
             </LinearLayout>
 

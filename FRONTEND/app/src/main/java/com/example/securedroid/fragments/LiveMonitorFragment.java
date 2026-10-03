@@ -33,10 +33,8 @@ public class LiveMonitorFragment extends Fragment {
     private TextView txtPrivacyEventsCount;
     private TextView txtHighRiskCount;
 
-    private View cardMonitoredApp1, cardMonitoredApp2;
-    private ImageView iconApp1, iconApp2;
-    private TextView txtMonitoredAppName1, txtMonitoredAppStatus1, txtMonitoredAppBadge1;
-    private TextView txtMonitoredAppName2, txtMonitoredAppStatus2, txtMonitoredAppBadge2;
+    private androidx.recyclerview.widget.RecyclerView rvLiveMonitoredApps;
+    private TextView txtBackgroundAppsCountBadge, txtNoRunningApps;
 
     private SessionManager sessionManager;
 
@@ -55,27 +53,21 @@ public class LiveMonitorFragment extends Fragment {
         txtPrivacyEventsCount = view.findViewById(R.id.txtPrivacyEventsCount);
         txtHighRiskCount = view.findViewById(R.id.txtHighRiskCount);
 
-        cardMonitoredApp1 = view.findViewById(R.id.cardMonitoredApp1);
-        cardMonitoredApp2 = view.findViewById(R.id.cardMonitoredApp2);
-        iconApp1 = view.findViewById(R.id.iconApp1);
-        iconApp2 = view.findViewById(R.id.iconApp2);
-        txtMonitoredAppName1 = view.findViewById(R.id.txtMonitoredAppName1);
-        txtMonitoredAppStatus1 = view.findViewById(R.id.txtMonitoredAppStatus1);
-        txtMonitoredAppBadge1 = view.findViewById(R.id.txtMonitoredAppBadge1);
-        txtMonitoredAppName2 = view.findViewById(R.id.txtMonitoredAppName2);
-        txtMonitoredAppStatus2 = view.findViewById(R.id.txtMonitoredAppStatus2);
-        txtMonitoredAppBadge2 = view.findViewById(R.id.txtMonitoredAppBadge2);
+        rvLiveMonitoredApps = view.findViewById(R.id.rvLiveMonitoredApps);
+        txtBackgroundAppsCountBadge = view.findViewById(R.id.txtBackgroundAppsCountBadge);
+        txtNoRunningApps = view.findViewById(R.id.txtNoRunningApps);
 
         startRadarAnimation();
         loadRealMonitorMetrics();
 
         switchLiveMonitor.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                txtProtectionStatus.setText("Real-time protection is ON");
+                txtProtectionStatus.setText("Background permission audit active");
                 txtProtectionStatus.setTextColor(0xFF00E676);
                 startRadarAnimation();
+                loadRealMonitorMetrics();
             } else {
-                txtProtectionStatus.setText("Real-time protection is OFF");
+                txtProtectionStatus.setText("Permission monitoring paused");
                 txtProtectionStatus.setTextColor(0xFFFF3B30);
                 if (imgRadarGlow != null) {
                     imgRadarGlow.clearAnimation();
@@ -94,8 +86,8 @@ public class LiveMonitorFragment extends Fragment {
         int highRiskApps = 0;
 
         for (AppModel app : apps) {
-            String risk = AppsFragment.getAppRiskCategory(app);
-            if ("HIGH".equals(risk)) {
+            String risk = AppsFragment.getAppRiskLevel(getContext(), app);
+            if ("HIGH".equalsIgnoreCase(risk) || "CRITICAL".equalsIgnoreCase(risk)) {
                 highRiskApps++;
             }
         }
@@ -107,36 +99,112 @@ public class LiveMonitorFragment extends Fragment {
         if (txtPrivacyEventsCount != null) txtPrivacyEventsCount.setText(String.valueOf(alertCount));
         if (txtHighRiskCount != null) txtHighRiskCount.setText(String.valueOf(highRiskApps));
 
-        PackageManager pm = getContext().getPackageManager();
-
-        if (apps.size() > 0 && cardMonitoredApp1 != null) {
-            AppModel app1 = apps.get(0);
-            if (txtMonitoredAppName1 != null) txtMonitoredAppName1.setText(app1.getApplicationName());
-            if (txtMonitoredAppStatus1 != null) txtMonitoredAppStatus1.setText("Periodic permission check active");
-            if (iconApp1 != null) {
-                try {
-                    Drawable d = pm.getApplicationIcon(app1.getPackageName());
-                    if (d != null) {
-                        iconApp1.setImageDrawable(d);
-                        iconApp1.setColorFilter(null);
+        // Detect applications currently active in memory / running processes & background services
+        java.util.Set<String> activePackages = new java.util.HashSet<>();
+        android.app.ActivityManager am = (android.app.ActivityManager) getContext().getSystemService(android.content.Context.ACTIVITY_SERVICE);
+        if (am != null) {
+            try {
+                List<android.app.ActivityManager.RunningAppProcessInfo> procs = am.getRunningAppProcesses();
+                if (procs != null) {
+                    for (android.app.ActivityManager.RunningAppProcessInfo p : procs) {
+                        if (p.pkgList != null) {
+                            for (String pkg : p.pkgList) {
+                                if (pkg != null && !pkg.isEmpty()) {
+                                    activePackages.add(pkg);
+                                }
+                            }
+                        }
                     }
-                } catch (Exception ignored) {}
+                }
+            } catch (Exception ignored) {}
+
+            try {
+                List<android.app.ActivityManager.RunningServiceInfo> services = am.getRunningServices(50);
+                if (services != null) {
+                    for (android.app.ActivityManager.RunningServiceInfo s : services) {
+                        if (s.service != null && s.service.getPackageName() != null) {
+                            activePackages.add(s.service.getPackageName());
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        PackageManager pm = getContext().getPackageManager();
+        List<com.example.securedroid.adapters.LiveMonitorAppAdapter.RunningAppItem> runningItems = new java.util.ArrayList<>();
+
+        // Match detected active processes and apps with background capabilities
+        for (AppModel app : apps) {
+            boolean isProcessActive = activePackages.contains(app.getPackageName());
+            boolean hasBackgroundCapability = false;
+
+            if (app.getPermissions() != null) {
+                for (String p : app.getPermissions()) {
+                    if (p != null && (p.contains("BOOT_COMPLETED")
+                            || p.contains("FOREGROUND_SERVICE")
+                            || p.contains("BACKGROUND_LOCATION")
+                            || p.contains("WAKE_LOCK"))) {
+                        hasBackgroundCapability = true;
+                        break;
+                    }
+                }
+            }
+
+            if (isProcessActive || hasBackgroundCapability) {
+                Drawable icon = null;
+                try {
+                    icon = pm.getApplicationIcon(app.getPackageName());
+                } catch (Exception e) {
+                    try {
+                        android.content.pm.ApplicationInfo info = pm.getApplicationInfo(app.getPackageName(), 0);
+                        icon = info.loadIcon(pm);
+                    } catch (Exception ignored) {}
+                }
+
+                String status = isProcessActive ? "Active Process • Running in Background" : "Background Service • Audited";
+                String risk = AppsFragment.getAppRiskLevel(getContext(), app);
+                runningItems.add(new com.example.securedroid.adapters.LiveMonitorAppAdapter.RunningAppItem(
+                        app.getApplicationName(),
+                        app.getPackageName(),
+                        status,
+                        risk,
+                        icon
+                ));
             }
         }
 
-        if (apps.size() > 1 && cardMonitoredApp2 != null) {
-            AppModel app2 = apps.get(1);
-            if (txtMonitoredAppName2 != null) txtMonitoredAppName2.setText(app2.getApplicationName());
-            if (txtMonitoredAppStatus2 != null) txtMonitoredAppStatus2.setText("Periodic permission check active");
-            if (iconApp2 != null) {
+        // If list is empty due to system process sandboxing, present scanned active user apps
+        if (runningItems.isEmpty()) {
+            for (AppModel app : apps) {
+                Drawable icon = null;
                 try {
-                    Drawable d = pm.getApplicationIcon(app2.getPackageName());
-                    if (d != null) {
-                        iconApp2.setImageDrawable(d);
-                        iconApp2.setColorFilter(null);
-                    }
+                    icon = pm.getApplicationIcon(app.getPackageName());
                 } catch (Exception ignored) {}
+                String risk = AppsFragment.getAppRiskLevel(getContext(), app);
+                runningItems.add(new com.example.securedroid.adapters.LiveMonitorAppAdapter.RunningAppItem(
+                        app.getApplicationName(),
+                        app.getPackageName(),
+                        "Background Audit Active",
+                        risk,
+                        icon
+                ));
+                if (runningItems.size() >= 10) break;
             }
+        }
+
+        if (rvLiveMonitoredApps != null) {
+            rvLiveMonitoredApps.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(getContext()));
+            com.example.securedroid.adapters.LiveMonitorAppAdapter adapter =
+                    new com.example.securedroid.adapters.LiveMonitorAppAdapter(getContext(), runningItems);
+            rvLiveMonitoredApps.setAdapter(adapter);
+        }
+
+        if (txtBackgroundAppsCountBadge != null) {
+            txtBackgroundAppsCountBadge.setText(runningItems.size() + " Active");
+        }
+
+        if (txtNoRunningApps != null) {
+            txtNoRunningApps.setVisibility(runningItems.isEmpty() ? View.VISIBLE : View.GONE);
         }
     }
 

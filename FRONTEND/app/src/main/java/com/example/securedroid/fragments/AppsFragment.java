@@ -73,46 +73,38 @@ public class AppsFragment extends Fragment {
         scanInstalledApps();
     }
 
-    public static String getAppRiskCategory(AppModel app) {
-        boolean hasCamera = false;
-        boolean hasMic = false;
-        boolean hasLocation = false;
-        boolean hasSms = false;
-
-        if (app.getPermissions() != null) {
-            for (String p : app.getPermissions()) {
-                String pUpper = p.toUpperCase();
-                if (pUpper.contains("CAMERA")) hasCamera = true;
-                if (pUpper.contains("RECORD_AUDIO") || pUpper.contains("MICROPHONE")) hasMic = true;
-                if (pUpper.contains("LOCATION")) hasLocation = true;
-                if (pUpper.contains("SMS") || pUpper.contains("CONTACT")) hasSms = true;
-            }
+    public static String getAppRiskLevel(android.content.Context context, AppModel app) {
+        if (app == null || context == null) return "LOW";
+        com.example.securedroid.utils.SessionManager sessionManager = com.example.securedroid.utils.SessionManager.getInstance(context);
+        RiskScoreModel model = sessionManager.getAppRiskScore(app.getPackageName());
+        if (model != null && model.getRiskLevel() != null) {
+            return model.getRiskLevel().toUpperCase();
         }
-
-        if ((hasCamera && hasLocation) || (hasCamera && hasMic) || (hasSms && hasLocation)) {
-            return "HIGH";
-        } else if (hasCamera || hasMic || hasLocation || hasSms) {
-            return "MEDIUM";
-        } else {
-            return "SAFE";
-        }
+        return "UNKNOWN";
     }
 
     private void scanInstalledApps() {
         if (getContext() == null) return;
         List<AppModel> allInstalledApps = PackageManagerHelper.getInstalledApps(getContext());
+        com.example.securedroid.utils.SessionManager sessionManager = com.example.securedroid.utils.SessionManager.getInstance(getContext());
 
         List<AppModel> filteredList = new ArrayList<>();
         for (AppModel app : allInstalledApps) {
-            String category = getAppRiskCategory(app);
+            String riskLevel = getAppRiskLevel(getContext(), app);
             if ("ALL".equalsIgnoreCase(currentFilter)) {
                 filteredList.add(app);
             } else if ("SAFE".equalsIgnoreCase(currentFilter) || "LOW".equalsIgnoreCase(currentFilter)) {
-                if ("SAFE".equals(category)) filteredList.add(app);
+                if ("LOW".equalsIgnoreCase(riskLevel) || "SAFE".equalsIgnoreCase(riskLevel) || "UNKNOWN".equalsIgnoreCase(riskLevel)) {
+                    filteredList.add(app);
+                }
             } else if ("MEDIUM".equalsIgnoreCase(currentFilter)) {
-                if ("MEDIUM".equals(category)) filteredList.add(app);
+                if ("MEDIUM".equalsIgnoreCase(riskLevel)) {
+                    filteredList.add(app);
+                }
             } else if ("HIGH".equalsIgnoreCase(currentFilter)) {
-                if ("HIGH".equals(category)) filteredList.add(app);
+                if ("HIGH".equalsIgnoreCase(riskLevel) || "CRITICAL".equalsIgnoreCase(riskLevel)) {
+                    filteredList.add(app);
+                }
             }
         }
 
@@ -133,31 +125,34 @@ public class AppsFragment extends Fragment {
             rvApps.setAdapter(adapter);
         }
 
-        if (!filteredList.isEmpty()) {
-            AppModel sampleApp = filteredList.get(0);
-            AppAnalysisRequest req = new AppAnalysisRequest(
-                    sampleApp.getPackageName(),
-                    sampleApp.getApplicationName(),
-                    sampleApp.getVersionName(),
-                    sampleApp.getDeveloper(),
-                    sampleApp.getPermissions()
-            );
+        // Asynchronously evaluate installed apps through authoritative backend risk engine (calculate_privacy_risk)
+        for (AppModel app : allInstalledApps) {
+            if (sessionManager.getAppRiskScore(app.getPackageName()) == null) {
+                AppAnalysisRequest req = new AppAnalysisRequest(
+                        app.getPackageName(),
+                        app.getApplicationName(),
+                        app.getVersionName(),
+                        app.getDeveloper(),
+                        app.getPermissions()
+                );
 
-            ApiClient.getAnalysisApi(getContext()).analyzeApplication(req).enqueue(new Callback<RiskScoreModel>() {
-                @Override
-                public void onResponse(Call<RiskScoreModel> call, Response<RiskScoreModel> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        RiskScoreModel risk = response.body();
-                        sampleApp.setRiskScore(risk.getRiskScore());
-                        sampleApp.setRiskLevel(risk.getRiskLevel());
+                ApiClient.getAnalysisApi(getContext()).analyzeApplication(req).enqueue(new Callback<RiskScoreModel>() {
+                    @Override
+                    public void onResponse(Call<RiskScoreModel> call, Response<RiskScoreModel> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            sessionManager.saveAppRiskScore(app.getPackageName(), response.body());
+                            if (adapter != null) {
+                                adapter.notifyDataSetChanged();
+                            }
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(Call<RiskScoreModel> call, Throwable t) {
-                    // Fail gracefully
-                }
-            });
+                    @Override
+                    public void onFailure(Call<RiskScoreModel> call, Throwable t) {
+                        // Network/backend offline
+                    }
+                });
+            }
         }
     }
 }
