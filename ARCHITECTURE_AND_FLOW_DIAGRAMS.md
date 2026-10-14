@@ -4,6 +4,12 @@ This document provides a comprehensive technical breakdown and visual mapping of
 
 ---
 
+## Visual System Architecture Diagram
+
+![SecureDroid Complete System Architecture Diagram](securedroid_architecture_diagram.jpg)
+
+---
+
 ## 1. High-Level Multi-Tier System Architecture
 
 The following diagram illustrates the complete 4-tier architecture of SecureDroid, including all internal subsystems, protocols, and boundaries.
