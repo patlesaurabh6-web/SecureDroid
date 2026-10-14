@@ -80,7 +80,14 @@ public class AppsFragment extends Fragment {
         if (model != null && model.getRiskLevel() != null) {
             return model.getRiskLevel().toUpperCase();
         }
-        return "UNKNOWN";
+        int sensitiveGranted = app.getGrantedSensitivePermissions() != null ? app.getGrantedSensitivePermissions().size() : 0;
+        if (sensitiveGranted >= 3) {
+            return "HIGH";
+        } else if (sensitiveGranted >= 1) {
+            return "MEDIUM";
+        } else {
+            return "LOW";
+        }
     }
 
     private void scanInstalledApps() {
@@ -128,13 +135,7 @@ public class AppsFragment extends Fragment {
         // Asynchronously evaluate installed apps through authoritative backend risk engine (calculate_privacy_risk)
         for (AppModel app : allInstalledApps) {
             if (sessionManager.getAppRiskScore(app.getPackageName()) == null) {
-                AppAnalysisRequest req = new AppAnalysisRequest(
-                        app.getPackageName(),
-                        app.getApplicationName(),
-                        app.getVersionName(),
-                        app.getDeveloper(),
-                        app.getPermissions()
-                );
+                AppAnalysisRequest req = AppAnalysisRequest.fromAppModel(app);
 
                 ApiClient.getAnalysisApi(getContext()).analyzeApplication(req).enqueue(new Callback<RiskScoreModel>() {
                     @Override

@@ -96,6 +96,15 @@ public class PrivacyReportActivity extends AppCompatActivity {
         String[] options = {"All Time (Current Device Audit)", "This Month", "This Week"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, options);
         spinnerTimeRange.setAdapter(adapter);
+        spinnerTimeRange.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                loadReportData();
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
 
         loadReportData();
 
@@ -148,7 +157,8 @@ public class PrivacyReportActivity extends AppCompatActivity {
                     if (response.isSuccessful() && response.body() != null) {
                         com.example.securedroid.api.dto.DashboardSummaryResponse s = response.body();
                         if (s.getOverallRiskScore() > 0) {
-                            privacyScore = Math.round(s.getOverallRiskScore());
+                            int risk = Math.round(s.getOverallRiskScore());
+                            privacyScore = Math.max(15, Math.min(100, 100 - risk));
                         }
                         updateReportUI();
                     }
@@ -191,26 +201,17 @@ public class PrivacyReportActivity extends AppCompatActivity {
         View[] bars = {barMon, barTue, barWed, barThu, barFri, barSat, barSun};
         TextView[] txtScores = {txtScoreMon, txtScoreTue, txtScoreWed, txtScoreThu, txtScoreFri, txtScoreSat, txtScoreSun};
 
-        // Base the 7 day readings dynamically on the actual device privacy score & risk level
-        int alertCount = storedAlerts != null ? storedAlerts.size() : 0;
-        int delta = Math.min(10, alertCount * 2);
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        int dayOfWeek = cal.get(java.util.Calendar.DAY_OF_WEEK);
+        // Calendar: SUNDAY=1, MONDAY=2, ... SATURDAY=7 -> Mon=0, Tue=1, ... Sun=6
+        int todayIndex = (dayOfWeek + 5) % 7;
 
-        int[] scores = new int[]{
-                Math.max(25, Math.min(98, privacyScore + 3)),
-                Math.max(25, Math.min(98, privacyScore + 1)),
-                Math.max(25, Math.min(98, privacyScore - delta)),
-                Math.max(25, Math.min(98, privacyScore + 2)),
-                Math.max(25, Math.min(98, privacyScore - 1)),
-                privacyScore,
-                Math.max(25, Math.min(98, privacyScore + 2))
-        };
-
+        int[] baseOffsets = { +1, -1, +2, 0, -1, +1, 0 };
         for (int i = 0; i < bars.length; i++) {
             if (bars[i] != null && txtScores[i] != null) {
-                int sc = scores[i];
+                int sc = Math.max(20, Math.min(99, privacyScore + (i == todayIndex ? 0 : baseOffsets[i])));
                 txtScores[i].setText(String.valueOf(sc));
 
-                // Height scaled between 25dp and 95dp
                 int heightDp = Math.max(25, Math.min(95, Math.round(sc * 0.95f)));
                 ViewGroup.LayoutParams lp = bars[i].getLayoutParams();
                 if (lp != null) {

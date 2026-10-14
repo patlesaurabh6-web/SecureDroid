@@ -9,6 +9,10 @@ class AppAnalysisRequest(BaseModel):
     version_name: Optional[str] = "1.0.0"
     developer: Optional[str] = "Unknown"
     permissions: List[str] = []
+    declared_permissions: Optional[List[str]] = None
+    granted_permissions: Optional[List[str]] = None
+    denied_permissions: Optional[List[str]] = None
+    normal_permissions: Optional[List[str]] = None
 
 class PolicyAnalysisRequest(BaseModel):
     privacy_policy_text: str

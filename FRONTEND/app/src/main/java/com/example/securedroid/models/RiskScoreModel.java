@@ -34,4 +34,5 @@ public class RiskScoreModel {
     public String getAnalysisSummary() { return analysisSummary; }
     public List<RecommendationModel> getRecommendations() { return recommendations; }
     public List<String> getReasons() { return reasons; }
+    public List<String> getExplanations() { return reasons != null ? reasons : new ArrayList<>(); }
 }

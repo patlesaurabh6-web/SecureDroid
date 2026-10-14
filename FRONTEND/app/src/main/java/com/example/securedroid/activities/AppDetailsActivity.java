@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -22,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.securedroid.R;
 import com.example.securedroid.api.ApiClient;
 import com.example.securedroid.api.dto.AppAnalysisRequest;
+import com.example.securedroid.utils.PackageManagerHelper;
 import com.example.securedroid.models.RecommendationModel;
 import com.example.securedroid.models.RiskScoreModel;
 import com.google.android.material.button.MaterialButton;
@@ -54,6 +56,11 @@ public class AppDetailsActivity extends AppCompatActivity {
 
         initViews();
         extractIntentData();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadAppDetails();
     }
 
@@ -109,7 +116,7 @@ public class AppDetailsActivity extends AppCompatActivity {
 
     private void loadAppDetails() {
         PackageManager pm = getPackageManager();
-        List<String> permissions = new ArrayList<>();
+        PackageManagerHelper.AppPermissionBreakdown breakdown = new PackageManagerHelper.AppPermissionBreakdown();
         String versionName = "1.0";
 
         try {
@@ -129,9 +136,7 @@ public class AppDetailsActivity extends AppCompatActivity {
                 if (packageInfo.versionName != null) {
                     versionName = packageInfo.versionName;
                 }
-                if (packageInfo.requestedPermissions != null) {
-                    permissions.addAll(Arrays.asList(packageInfo.requestedPermissions));
-                }
+                breakdown = PackageManagerHelper.classifyPermissions(pm, packageInfo, packageName);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -145,33 +150,46 @@ public class AppDetailsActivity extends AppCompatActivity {
         if (txtAppDetailsPkg != null) txtAppDetailsPkg.setText(packageName);
         if (txtAppDetailsVersion != null) txtAppDetailsVersion.setText("Version " + versionName);
 
-        // Perform analysis using authoritative backend RiskScoreModel
-        performRiskAnalysis(permissions);
+        // Perform analysis using authoritative backend RiskScoreModel using accurately classified permissions
+        performRiskAnalysis(breakdown, versionName);
     }
 
-    private void performRiskAnalysis(List<String> permissions) {
-        // Render requested permissions list
-        renderPermissionsList(permissions);
+    private void performRiskAnalysis(PackageManagerHelper.AppPermissionBreakdown b, String versionName) {
+        // Render permissions list with explicit Allowed / Not Allowed / Normal status
+        renderPermissionsList(b.grantedSensitivePermissions, b.deniedSensitivePermissions, b.normalPermissions);
+
+        com.example.securedroid.utils.SessionManager sessionManager = com.example.securedroid.utils.SessionManager.getInstance(this);
+
+        // If no sensitive permissions are currently granted to this app, risk is baseline safe
+        if (b.grantedSensitivePermissions.isEmpty()) {
+            RiskScoreModel zeroRiskModel = new RiskScoreModel(10.0f, "LOW", "No sensitive permissions are currently granted to this application in Android Settings.");
+            applyRiskScoreModel(zeroRiskModel, b.grantedSensitivePermissions);
+            sessionManager.saveAppRiskScore(packageName, zeroRiskModel);
+            return;
+        }
 
         // Check if authoritative RiskScoreModel was already computed & cached by backend
-        com.example.securedroid.utils.SessionManager sessionManager = com.example.securedroid.utils.SessionManager.getInstance(this);
         RiskScoreModel cachedModel = sessionManager.getAppRiskScore(packageName);
         if (cachedModel != null) {
-            applyRiskScoreModel(cachedModel, permissions);
+            applyRiskScoreModel(cachedModel, b.grantedSensitivePermissions);
         } else {
             showLoadingState();
         }
 
-        // Query backend risk engine (calculate_privacy_risk)
+        // Query backend risk engine evaluating ONLY the currently granted permissions
         try {
-            AppAnalysisRequest req = new AppAnalysisRequest(packageName, appName, permissions);
+            AppAnalysisRequest req = new AppAnalysisRequest(
+                    packageName, appName, versionName, "Installed App",
+                    b.declaredPermissions, b.grantedSensitivePermissions,
+                    b.deniedSensitivePermissions, b.normalPermissions
+            );
             ApiClient.getAnalysisApi(this).analyzeApplication(req).enqueue(new Callback<RiskScoreModel>() {
                 @Override
                 public void onResponse(Call<RiskScoreModel> call, Response<RiskScoreModel> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         RiskScoreModel model = response.body();
                         sessionManager.saveAppRiskScore(packageName, model);
-                        applyRiskScoreModel(model, permissions);
+                        applyRiskScoreModel(model, b.grantedSensitivePermissions);
                     } else if (cachedModel == null) {
                         showBackendUnavailableState();
                     }
@@ -361,41 +379,115 @@ public class AppDetailsActivity extends AppCompatActivity {
         }
     }
 
-    private void renderPermissionsList(List<String> permissions) {
+    private void renderPermissionsList(List<String> grantedPermissions, List<String> notGrantedPermissions, List<String> normalPermissions) {
+        int grantedCount = grantedPermissions != null ? grantedPermissions.size() : 0;
+        int notGrantedCount = notGrantedPermissions != null ? notGrantedPermissions.size() : 0;
+        int normalCount = normalPermissions != null ? normalPermissions.size() : 0;
+        int totalDeclared = grantedCount + notGrantedCount + normalCount;
+
         if (txtPermissionsHeader != null) {
-            txtPermissionsHeader.setText("All Requested Permissions (" + permissions.size() + ")");
+            txtPermissionsHeader.setText("App Permissions (" + totalDeclared + " Declared)");
         }
 
         if (layoutPermissionsList == null) return;
         layoutPermissionsList.removeAllViews();
 
-        if (permissions.isEmpty()) {
-            TextView txtEmpty = new TextView(this);
-            txtEmpty.setText("No permissions requested by this application.");
-            txtEmpty.setTextColor(0xFF90A4AE);
-            txtEmpty.setTextSize(13);
-            layoutPermissionsList.addView(txtEmpty);
-            return;
-        }
+        float density = getResources().getDisplayMetrics().density;
 
-        for (String perm : permissions) {
-            TextView txtPerm = new TextView(this);
-            String simpleName = perm.replace("android.permission.", "");
-            txtPerm.setText("• " + simpleName);
-            txtPerm.setTextSize(13);
-            txtPerm.setPadding(0, (int) (4 * getResources().getDisplayMetrics().density), 0, (int) (4 * getResources().getDisplayMetrics().density));
+        // --- Section 1: Allowed / Granted Sensitive Permissions ---
+        TextView txtGrantedTitle = new TextView(this);
+        txtGrantedTitle.setText("ALLOWED SENSITIVE PERMISSIONS (" + grantedCount + ")");
+        txtGrantedTitle.setTextColor(0xFF00E676);
+        txtGrantedTitle.setTextSize(13);
+        txtGrantedTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        txtGrantedTitle.setPadding(0, (int) (6 * density), 0, (int) (6 * density));
+        layoutPermissionsList.addView(txtGrantedTitle);
 
-            String u = perm.toUpperCase();
-            if (u.contains("CAMERA") || u.contains("RECORD_AUDIO") || u.contains("SMS") || u.contains("LOCATION") || u.contains("CONTACT")) {
-                txtPerm.setTextColor(0xFFFF8A80); // Red highlight for sensitive
-            } else if (u.contains("STORAGE") || u.contains("PHONE") || u.contains("BLUETOOTH")) {
-                txtPerm.setTextColor(0xFFFFE082); // Amber highlight
-            } else {
-                txtPerm.setTextColor(0xFFCFD8DC); // Clean light grey
+        if (grantedCount == 0) {
+            TextView txtEmptyGranted = new TextView(this);
+            txtEmptyGranted.setText("No sensitive permissions are currently allowed in Android Settings.");
+            txtEmptyGranted.setTextColor(0xFF90A4AE);
+            txtEmptyGranted.setTextSize(12);
+            txtEmptyGranted.setPadding(0, 0, 0, (int) (10 * density));
+            layoutPermissionsList.addView(txtEmptyGranted);
+        } else {
+            for (String perm : grantedPermissions) {
+                layoutPermissionsList.addView(createPermissionRow(perm, "ALLOWED", 0xFF00E676, 0x2800E676, density));
             }
-
-            layoutPermissionsList.addView(txtPerm);
         }
+
+        // --- Section 2: Not Granted / Denied Sensitive Permissions ---
+        if (notGrantedCount > 0) {
+            TextView txtDeniedTitle = new TextView(this);
+            txtDeniedTitle.setText("NOT ALLOWED / DENIED PERMISSIONS (" + notGrantedCount + ")");
+            txtDeniedTitle.setTextColor(0xFF78909C);
+            txtDeniedTitle.setTextSize(13);
+            txtDeniedTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+            txtDeniedTitle.setPadding(0, (int) (14 * density), 0, (int) (6 * density));
+            layoutPermissionsList.addView(txtDeniedTitle);
+
+            for (String perm : notGrantedPermissions) {
+                layoutPermissionsList.addView(createPermissionRow(perm, "NOT ALLOWED", 0xFF78909C, 0x1F78909C, density));
+            }
+        }
+
+        // --- Section 3: Normal / Install-Time Capabilities ---
+        if (normalCount > 0) {
+            TextView txtNormalTitle = new TextView(this);
+            txtNormalTitle.setText("NORMAL / INSTALL-TIME CAPABILITIES (" + normalCount + ")");
+            txtNormalTitle.setTextColor(0xFF81D4FA);
+            txtNormalTitle.setTextSize(13);
+            txtNormalTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+            txtNormalTitle.setPadding(0, (int) (14 * density), 0, (int) (6 * density));
+            layoutPermissionsList.addView(txtNormalTitle);
+
+            for (String perm : normalPermissions) {
+                layoutPermissionsList.addView(createPermissionRow(perm, "NORMAL", 0xFF81D4FA, 0x1F81D4FA, density));
+            }
+        }
+    }
+
+    private View createPermissionRow(String perm, String badgeText, int badgeColor, int badgeBgColor, float density) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        row.setPadding(0, (int) (5 * density), 0, (int) (5 * density));
+
+        TextView txtName = new TextView(this);
+        String simpleName = perm.replace("android.permission.", "");
+        boolean isAllowed = "ALLOWED".equalsIgnoreCase(badgeText);
+        txtName.setText((isAllowed ? "• " : "○ ") + simpleName);
+        txtName.setTextSize(13);
+        txtName.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+
+        if (isAllowed) {
+            String u = perm.toUpperCase(java.util.Locale.ROOT);
+            if (u.contains("CAMERA") || u.contains("RECORD_AUDIO") || u.contains("SMS") || u.contains("LOCATION") || u.contains("CONTACT")) {
+                txtName.setTextColor(0xFFFF8A80);
+            } else if (u.contains("STORAGE") || u.contains("PHONE") || u.contains("BLUETOOTH")) {
+                txtName.setTextColor(0xFFFFE082);
+            } else {
+                txtName.setTextColor(0xFFE0E0E0);
+            }
+        } else {
+            txtName.setTextColor(0xFF90A4AE);
+        }
+        row.addView(txtName);
+
+        TextView txtBadge = new TextView(this);
+        txtBadge.setText(badgeText);
+        txtBadge.setTextSize(10);
+        txtBadge.setTypeface(null, android.graphics.Typeface.BOLD);
+        txtBadge.setPadding((int) (8 * density), (int) (2 * density), (int) (8 * density), (int) (2 * density));
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(6 * density);
+        txtBadge.setTextColor(badgeColor);
+        bg.setColor(badgeBgColor);
+        txtBadge.setBackground(bg);
+        row.addView(txtBadge);
+
+        return row;
     }
 
     private static class BreakdownItem {

@@ -24,12 +24,24 @@ import java.util.Set;
 public class PrivacyMonitorService extends Service {
 
     private static final String TAG = "PrivacyMonitorService";
+    private java.util.concurrent.ScheduledExecutorService scheduler;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "PrivacyMonitorService started.");
-        performPermissionAudit();
+        if (scheduler == null || scheduler.isShutdown()) {
+            scheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor();
+            scheduler.scheduleWithFixedDelay(this::performPermissionAudit, 0, 15, java.util.concurrent.TimeUnit.MINUTES);
+        }
         return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdown();
+        }
     }
 
     private void performPermissionAudit() {

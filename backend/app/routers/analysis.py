@@ -47,10 +47,16 @@ def analyze_application(
         app.developer = req.developer
         db.commit()
 
-    # Calculate privacy score & risk level
-    score, risk_level, reasons = calculate_privacy_risk(req.permissions)
+    # Calculate privacy score & risk level based on actively granted permissions
+    score, risk_level, reasons = calculate_privacy_risk(
+        permissions=req.permissions,
+        granted_permissions=req.granted_permissions,
+        denied_permissions=req.denied_permissions,
+        normal_permissions=req.normal_permissions
+    )
 
-    summary_str = f"Privacy risk evaluated as {risk_level} (Score: {score}/100) based on {len(req.permissions)} permissions."
+    active_count = len(req.granted_permissions) if req.granted_permissions is not None else len(req.permissions)
+    summary_str = f"Privacy risk evaluated as {risk_level} (Score: {score}/100) based on {active_count} active permissions."
 
     analysis = PrivacyAnalysis(
         user_id=current_user.id,

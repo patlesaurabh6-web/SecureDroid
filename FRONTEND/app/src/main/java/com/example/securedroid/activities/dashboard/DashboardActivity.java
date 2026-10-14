@@ -233,13 +233,7 @@ public class DashboardActivity extends AppCompatActivity {
         // Dispatch installed apps to authoritative backend risk engine (calculate_privacy_risk)
         List<AppModel> installedList = PackageManagerHelper.getInstalledApps(this);
         for (AppModel app : installedList) {
-            com.example.securedroid.api.dto.AppAnalysisRequest req = new com.example.securedroid.api.dto.AppAnalysisRequest(
-                    app.getPackageName(),
-                    app.getApplicationName(),
-                    app.getVersionName(),
-                    app.getDeveloper(),
-                    app.getPermissions()
-            );
+            com.example.securedroid.api.dto.AppAnalysisRequest req = com.example.securedroid.api.dto.AppAnalysisRequest.fromAppModel(app);
             ApiClient.getAnalysisApi(this).analyzeApplication(req).enqueue(new Callback<RiskScoreModel>() {
                 @Override
                 public void onResponse(Call<RiskScoreModel> call, Response<RiskScoreModel> response) {

@@ -144,13 +144,20 @@ public class SettingsActivity extends AppCompatActivity {
         builder.setTitle("Configure Server IP");
 
         final EditText input = new EditText(this);
-        input.setHint("e.g. 10.76.84.167");
-        input.setText("10.76.84.167");
+        String currentIp = sessionManager != null ? sessionManager.getServerIp() : null;
+        if (currentIp == null || currentIp.isEmpty()) {
+            currentIp = "127.0.0.1";
+        }
+        input.setHint("e.g. 192.168.1.50 or 127.0.0.1");
+        input.setText(currentIp);
         builder.setView(input);
 
         builder.setPositiveButton("Save", (dialog, which) -> {
             String ip = input.getText().toString().trim();
             if (!ip.isEmpty()) {
+                if (sessionManager != null) {
+                    sessionManager.saveServerIp(ip);
+                }
                 ApiClient.setServerIp(ip);
                 if (txtCurrentServerIp != null) {
                     txtCurrentServerIp.setText(ApiClient.BASE_URL);

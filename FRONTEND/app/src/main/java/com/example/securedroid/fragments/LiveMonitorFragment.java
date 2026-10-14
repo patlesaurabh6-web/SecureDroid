@@ -138,8 +138,9 @@ public class LiveMonitorFragment extends Fragment {
             boolean isProcessActive = activePackages.contains(app.getPackageName());
             boolean hasBackgroundCapability = false;
 
-            if (app.getPermissions() != null) {
-                for (String p : app.getPermissions()) {
+            List<String> manifestPerms = app.getDeclaredPermissions() != null ? app.getDeclaredPermissions() : app.getPermissions();
+            if (manifestPerms != null) {
+                for (String p : manifestPerms) {
                     if (p != null && (p.contains("BOOT_COMPLETED")
                             || p.contains("FOREGROUND_SERVICE")
                             || p.contains("BACKGROUND_LOCATION")

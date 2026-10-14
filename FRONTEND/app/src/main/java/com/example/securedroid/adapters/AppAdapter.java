@@ -42,8 +42,14 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
 
         holder.txtAppName.setText(app.getApplicationName());
 
-        int permCount = app.getPermissions() != null ? app.getPermissions().size() : 0;
-        holder.txtAppPermissions.setText(permCount + " Permissions Requested");
+        int permCount = app.getDeclaredPermissions() != null && !app.getDeclaredPermissions().isEmpty() ?
+                app.getDeclaredPermissions().size() : (app.getPermissions() != null ? app.getPermissions().size() : 0);
+        int grantedSensitive = app.getGrantedSensitivePermissions() != null ? app.getGrantedSensitivePermissions().size() : 0;
+        if (grantedSensitive > 0) {
+            holder.txtAppPermissions.setText(grantedSensitive + " Sensitive Allowed • " + permCount + " Declared");
+        } else {
+            holder.txtAppPermissions.setText("0 Sensitive Allowed • " + permCount + " Declared");
+        }
 
         // Load actual app icon
         holder.imgAppIcon.setImageTintList(null);
