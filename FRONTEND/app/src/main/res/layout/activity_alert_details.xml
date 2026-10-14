@@ -46,8 +46,9 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- High Risk Alert Main Card -->
+            <!-- Alert Main Card -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAlertDetails"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="18dp"
@@ -62,6 +63,7 @@
                     android:padding="20dp">
 
                     <LinearLayout
+                        android:id="@+id/layoutRiskBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -73,12 +75,14 @@
                         android:paddingBottom="6dp">
 
                         <ImageView
+                            android:id="@+id/imgRiskIcon"
                             android:layout_width="18dp"
                             android:layout_height="18dp"
                             android:src="@drawable/ic_warning"
                             app:tint="#FF3B30"/>
 
                         <TextView
+                            android:id="@+id/txtRiskBadge"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="High Risk"
@@ -92,9 +96,9 @@
                         android:id="@+id/txtAlertTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Camera Access Detected"
+                        android:text="Privacy Alert"
                         android:textColor="@color/text_primary"
-                        android:textSize="20sp"
+                        android:textSize="19sp"
                         android:textStyle="bold"
                         android:layout_marginTop="12dp"/>
 
@@ -105,52 +109,88 @@
                         android:orientation="vertical"
                         android:layout_marginTop="16dp">
 
+                        <!-- App Row -->
                         <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp">
+                            android:layout_marginBottom="12dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="App"
                                 android:textColor="@color/text_secondary"
-                                android:textSize="14sp"/>
+                                android:textSize="14sp"
+                                android:layout_centerVertical="true"/>
 
-                            <TextView
-                                android:id="@+id/txtAppName"
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="SuspiciousCamera"
-                                android:textColor="@color/text_primary"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:layout_alignParentEnd="true"/>
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical|end"
+                                android:layout_alignParentEnd="true">
+
+                                <ImageView
+                                    android:id="@+id/imgAppIcon"
+                                    android:layout_width="26dp"
+                                    android:layout_height="26dp"
+                                    android:layout_marginEnd="8dp"
+                                    android:src="@drawable/ic_apps"
+                                    android:visibility="gone"/>
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:gravity="end">
+
+                                    <TextView
+                                        android:id="@+id/txtAppName"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Application"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"/>
+
+                                    <TextView
+                                        android:id="@+id/txtPackageName"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="package.name"
+                                        android:textColor="@color/text_secondary"
+                                        android:textSize="11sp"
+                                        android:visibility="gone"/>
+                                </LinearLayout>
+                            </LinearLayout>
                         </RelativeLayout>
 
+                        <!-- Permissions Row -->
                         <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp">
+                            android:layout_marginBottom="12dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Permission"
+                                android:text="Permissions"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="14sp"/>
 
                             <TextView
                                 android:id="@+id/txtPermission"
-                                android:layout_width="wrap_content"
+                                android:layout_width="200dp"
                                 android:layout_height="wrap_content"
-                                android:text="Camera"
+                                android:text="Standard Permissions"
                                 android:textColor="@color/text_primary"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
+                                android:gravity="end"
                                 android:layout_alignParentEnd="true"/>
                         </RelativeLayout>
 
+                        <!-- Time Row -->
                         <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -167,7 +207,7 @@
                                 android:id="@+id/txtTime"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Today, 10:30 AM"
+                                android:text="Recent"
                                 android:textColor="@color/text_primary"
                                 android:textSize="14sp"
                                 android:layout_alignParentEnd="true"/>
@@ -179,7 +219,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Reason"
+                        android:text="Risk Reason / Summary"
                         android:textColor="@color/text_secondary"
                         android:textSize="13sp"
                         android:layout_marginTop="12dp"/>
@@ -188,9 +228,10 @@
                         android:id="@+id/txtReason"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="This app accessed camera in background 3 times without active UI session."
+                        android:text="Application analysis details."
                         android:textColor="@color/text_primary"
                         android:textSize="14sp"
+                        android:lineSpacingExtra="3dp"
                         android:layout_marginTop="4dp"/>
 
                     <!-- AI Recommendation Box -->
@@ -221,9 +262,10 @@
                                 android:id="@+id/txtAiRecommendation"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="We recommend restricting camera permission for this app immediately to prevent data leakage."
+                                android:text="Review permission access in system settings."
                                 android:textColor="@color/text_secondary"
                                 android:textSize="13sp"
+                                android:lineSpacingExtra="2dp"
                                 android:layout_marginTop="4dp"/>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -255,14 +297,24 @@
             android:background="@drawable/bg_glow_button"/>
 
         <Button
-            android:id="@+id/btnIgnore"
+            android:id="@+id/btnViewAppAnalysis"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="MARK AS REVIEWED"
+            android:text="VIEW FULL APP ANALYSIS"
             android:textSize="14sp"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/accent"
             android:background="@drawable/bg_outline_button"
             android:layout_marginTop="10dp"/>
+
+        <Button
+            android:id="@+id/btnIgnore"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:text="MARK AS REVIEWED"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:background="@android:color/transparent"
+            android:layout_marginTop="6dp"/>
     </LinearLayout>
 
 </RelativeLayout>

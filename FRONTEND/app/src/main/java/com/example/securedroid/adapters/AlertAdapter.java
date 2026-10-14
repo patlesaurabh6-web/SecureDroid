@@ -46,6 +46,20 @@ public class AlertAdapter extends RecyclerView.Adapter<AlertAdapter.AlertViewHol
             colorResId = android.R.color.holo_blue_light;
         }
         holder.imgAlert.setColorFilter(ContextCompat.getColor(holder.itemView.getContext(), colorResId));
+
+        holder.itemView.setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(v.getContext(), com.example.securedroid.activities.AlertDetailsActivity.class);
+            intent.putExtra("APP_NAME", alert.getAppName());
+            intent.putExtra("PACKAGE_NAME", alert.getPackageName());
+            intent.putExtra("PERMISSION", alert.getPermissionChange());
+            intent.putExtra("RISK_LEVEL", alert.getCurrentRisk());
+            intent.putExtra("CURR_RISK", alert.getCurrentRisk());
+            intent.putExtra("PREV_RISK", alert.getPreviousRisk());
+            intent.putExtra("TIME", alert.getTime());
+            intent.putExtra("DESCRIPTION", alert.getExplanation() != null ? alert.getExplanation() : alert.getMessage());
+            intent.putExtra("ALERT_TITLE", alert.getTitle());
+            v.getContext().startActivity(intent);
+        });
     }
 
     @Override

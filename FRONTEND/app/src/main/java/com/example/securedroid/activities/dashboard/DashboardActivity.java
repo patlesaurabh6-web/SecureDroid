@@ -336,10 +336,43 @@ public class DashboardActivity extends AppCompatActivity {
                 img.setColorFilter(0xFFFF3B30);
             }
             cardAIAdvisor.setOnClickListener(v -> {
-                Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
-                intent.putExtra("APP_NAME", "Suspicious App Risk");
-                intent.putExtra("PERMISSION", "Camera & Location Access");
-                startActivity(intent);
+                List<AlertModel> savedAlerts = sessionManager != null ? sessionManager.getPrivacyAlerts() : null;
+                if (savedAlerts != null && !savedAlerts.isEmpty()) {
+                    AlertModel top = savedAlerts.get(0);
+                    Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
+                    intent.putExtra("APP_NAME", top.getAppName());
+                    intent.putExtra("PACKAGE_NAME", top.getPackageName());
+                    intent.putExtra("PERMISSION", top.getPermissionChange());
+                    intent.putExtra("RISK_LEVEL", top.getCurrentRisk());
+                    intent.putExtra("CURR_RISK", top.getCurrentRisk());
+                    intent.putExtra("PREV_RISK", top.getPreviousRisk());
+                    intent.putExtra("TIME", top.getTime());
+                    intent.putExtra("DESCRIPTION", top.getExplanation() != null ? top.getExplanation() : top.getMessage());
+                    intent.putExtra("ALERT_TITLE", top.getTitle());
+                    startActivity(intent);
+                } else {
+                    List<AppModel> apps = PackageManagerHelper.getInstalledApps(DashboardActivity.this);
+                    AppModel targetApp = null;
+                    String targetRisk = "High";
+                    for (AppModel a : apps) {
+                        String r = AppsFragment.getAppRiskLevel(DashboardActivity.this, a);
+                        if ("HIGH".equalsIgnoreCase(r) || "CRITICAL".equalsIgnoreCase(r)) {
+                            targetApp = a;
+                            targetRisk = "High";
+                            break;
+                        } else if (targetApp == null && "MEDIUM".equalsIgnoreCase(r)) {
+                            targetApp = a;
+                            targetRisk = "Medium";
+                        }
+                    }
+                    if (targetApp != null) {
+                        Intent intent = createAlertIntentForApp(targetApp, targetRisk);
+                        startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(DashboardActivity.this, NotificationHistoryActivity.class);
+                        startActivity(intent);
+                    }
+                }
             });
         }
 
@@ -394,10 +427,19 @@ public class DashboardActivity extends AppCompatActivity {
             return;
         }
 
-        int score = Math.round(summary.getOverallRiskScore());
-        String level = summary.getRiskLevel() != null ? summary.getRiskLevel().toUpperCase() : "LOW";
+        int riskScore = Math.round(summary.getOverallRiskScore());
+        int privacyScore = Math.max(15, Math.min(100, 100 - riskScore));
+        String rawLevel = summary.getRiskLevel() != null ? summary.getRiskLevel().toUpperCase() : "LOW";
+        String level;
+        if (rawLevel.contains("HIGH") || rawLevel.contains("CRIT")) {
+            level = "HIGH RISK";
+        } else if (rawLevel.contains("MED")) {
+            level = "MEDIUM RISK";
+        } else {
+            level = "LOW RISK";
+        }
 
-        applyRiskScoreStyling(score, level);
+        applyRiskScoreStyling(privacyScore, level);
 
         List<AppModel> apps = PackageManagerHelper.getInstalledApps(this);
         int totalApps = apps.size();
@@ -449,7 +491,7 @@ public class DashboardActivity extends AppCompatActivity {
         setupRecentAlertCards(highRiskList, mediumRiskList, totalApps);
 
         // Update Privacy Timeline dynamically
-        setupPrivacyTimeline(score, level, totalApps);
+        setupPrivacyTimeline(privacyScore, level, totalApps);
     }
 
     private void loadCachedDeviceMetrics() {
@@ -482,10 +524,25 @@ public class DashboardActivity extends AppCompatActivity {
             }
         }
 
-        int score = scoredCount > 0 ? Math.round(scoreSum / scoredCount) : 15;
-        String level = score <= 30 ? "LOW RISK" : (score <= 60 ? "MEDIUM RISK" : "HIGH RISK");
+        int privacyScore;
+        if (scoredCount > 0) {
+            int avgRisk = Math.round(scoreSum / scoredCount);
+            privacyScore = Math.max(15, Math.min(100, 100 - avgRisk));
+        } else {
+            int penalty = (highRiskApps * 20) + (mediumRiskApps * 5);
+            privacyScore = Math.max(20, Math.min(95, 100 - penalty));
+        }
 
-        applyRiskScoreStyling(score, level);
+        String level;
+        if (highRiskApps > 0 || privacyScore < 40) {
+            level = "HIGH RISK";
+        } else if (mediumRiskApps > 0 || privacyScore < 70) {
+            level = "MEDIUM RISK";
+        } else {
+            level = "LOW RISK";
+        }
+
+        applyRiskScoreStyling(privacyScore, level);
 
         if (cardApps != null) {
             ((TextView) cardApps.findViewById(R.id.txtValue)).setText(String.valueOf(totalApps));
@@ -507,7 +564,7 @@ public class DashboardActivity extends AppCompatActivity {
         }
 
         setupRecentAlertCards(highRiskList, mediumRiskList, totalApps);
-        setupPrivacyTimeline(score, level, totalApps);
+        setupPrivacyTimeline(privacyScore, level, totalApps);
     }
 
     private void setupRecentAlertCards(List<AppModel> highRisk, List<AppModel> mediumRisk, int totalApps) {
@@ -530,41 +587,40 @@ public class DashboardActivity extends AppCompatActivity {
                 cardRecentAlert1.setOnClickListener(v -> {
                     Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
                     intent.putExtra("APP_NAME", alert1.getAppName());
+                    intent.putExtra("PACKAGE_NAME", alert1.getPackageName());
                     intent.putExtra("PERMISSION", alert1.getPermissionChange());
                     intent.putExtra("RISK_LEVEL", alert1.getCurrentRisk());
-                    intent.putExtra("DESCRIPTION", alert1.getExplanation());
+                    intent.putExtra("CURR_RISK", alert1.getCurrentRisk());
+                    intent.putExtra("PREV_RISK", alert1.getPreviousRisk());
+                    intent.putExtra("TIME", alert1.getTime());
+                    intent.putExtra("DESCRIPTION", alert1.getExplanation() != null ? alert1.getExplanation() : alert1.getMessage());
+                    intent.putExtra("ALERT_TITLE", alert1.getTitle());
                     startActivity(intent);
                 });
             } else if (!highRisk.isEmpty()) {
                 AppModel app1 = highRisk.get(0);
+                String permSummary = getAppPermissionSummary(app1);
                 if (txtTitle1 != null) txtTitle1.setText(app1.getApplicationName() + " - High Risk");
-                if (txtSub1 != null) txtSub1.setText(app1.getApplicationName() + " • Camera & Location • Today");
+                if (txtSub1 != null) txtSub1.setText(app1.getApplicationName() + " • " + permSummary + " • Today");
                 if (img1 != null) {
                     img1.setImageResource(R.drawable.ic_warning);
                     img1.setColorFilter(0xFFFF3B30);
                 }
                 cardRecentAlert1.setOnClickListener(v -> {
-                    Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
-                    intent.putExtra("APP_NAME", app1.getApplicationName());
-                    intent.putExtra("PERMISSION", "Camera & Location Access");
-                    intent.putExtra("RISK_LEVEL", "High");
-                    intent.putExtra("DESCRIPTION", "This app has simultaneous access to multiple sensitive permissions.");
+                    Intent intent = createAlertIntentForApp(app1, "High");
                     startActivity(intent);
                 });
             } else if (!mediumRisk.isEmpty()) {
                 AppModel app1 = mediumRisk.get(0);
-                if (txtTitle1 != null) txtTitle1.setText(app1.getApplicationName() + " - Location/Storage");
-                if (txtSub1 != null) txtSub1.setText(app1.getApplicationName() + " • Approximate Location • Today");
+                String permSummary = getAppPermissionSummary(app1);
+                if (txtTitle1 != null) txtTitle1.setText(app1.getApplicationName() + " - Medium Risk");
+                if (txtSub1 != null) txtSub1.setText(app1.getApplicationName() + " • " + permSummary + " • Today");
                 if (img1 != null) {
                     img1.setImageResource(R.drawable.ic_warning);
                     img1.setColorFilter(0xFFFFC107);
                 }
                 cardRecentAlert1.setOnClickListener(v -> {
-                    Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
-                    intent.putExtra("APP_NAME", app1.getApplicationName());
-                    intent.putExtra("PERMISSION", "Location & Storage Access");
-                    intent.putExtra("RISK_LEVEL", "Medium");
-                    intent.putExtra("DESCRIPTION", "Application requests location or storage access.");
+                    Intent intent = createAlertIntentForApp(app1, "Medium");
                     startActivity(intent);
                 });
             } else {
@@ -597,41 +653,40 @@ public class DashboardActivity extends AppCompatActivity {
                 cardRecentAlert2.setOnClickListener(v -> {
                     Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
                     intent.putExtra("APP_NAME", alert2.getAppName());
+                    intent.putExtra("PACKAGE_NAME", alert2.getPackageName());
                     intent.putExtra("PERMISSION", alert2.getPermissionChange());
                     intent.putExtra("RISK_LEVEL", alert2.getCurrentRisk());
-                    intent.putExtra("DESCRIPTION", alert2.getExplanation());
+                    intent.putExtra("CURR_RISK", alert2.getCurrentRisk());
+                    intent.putExtra("PREV_RISK", alert2.getPreviousRisk());
+                    intent.putExtra("TIME", alert2.getTime());
+                    intent.putExtra("DESCRIPTION", alert2.getExplanation() != null ? alert2.getExplanation() : alert2.getMessage());
+                    intent.putExtra("ALERT_TITLE", alert2.getTitle());
                     startActivity(intent);
                 });
             } else if (highRisk.size() > 1) {
                 AppModel app2 = highRisk.get(1);
+                String permSummary = getAppPermissionSummary(app2);
                 if (txtTitle2 != null) txtTitle2.setText(app2.getApplicationName() + " - Sensitive Access");
-                if (txtSub2 != null) txtSub2.setText(app2.getApplicationName() + " • Microphone & Storage • Today");
+                if (txtSub2 != null) txtSub2.setText(app2.getApplicationName() + " • " + permSummary + " • Today");
                 if (img2 != null) {
                     img2.setImageResource(R.drawable.ic_warning);
                     img2.setColorFilter(0xFFFF3B30);
                 }
                 cardRecentAlert2.setOnClickListener(v -> {
-                    Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
-                    intent.putExtra("APP_NAME", app2.getApplicationName());
-                    intent.putExtra("PERMISSION", "Microphone & Storage");
-                    intent.putExtra("RISK_LEVEL", "High");
-                    intent.putExtra("DESCRIPTION", "Application requests microphone and storage access in background.");
+                    Intent intent = createAlertIntentForApp(app2, "High");
                     startActivity(intent);
                 });
             } else if (!mediumRisk.isEmpty()) {
                 AppModel app2 = mediumRisk.get(0);
-                if (txtTitle2 != null) txtTitle2.setText(app2.getApplicationName() + " - Location Access");
-                if (txtSub2 != null) txtSub2.setText(app2.getApplicationName() + " • Approximate Location • Today");
+                String permSummary = getAppPermissionSummary(app2);
+                if (txtTitle2 != null) txtTitle2.setText(app2.getApplicationName() + " - Medium Risk");
+                if (txtSub2 != null) txtSub2.setText(app2.getApplicationName() + " • " + permSummary + " • Today");
                 if (img2 != null) {
                     img2.setImageResource(R.drawable.ic_warning);
                     img2.setColorFilter(0xFFFFC107);
                 }
                 cardRecentAlert2.setOnClickListener(v -> {
-                    Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
-                    intent.putExtra("APP_NAME", app2.getApplicationName());
-                    intent.putExtra("PERMISSION", "Approximate Location");
-                    intent.putExtra("RISK_LEVEL", "Medium");
-                    intent.putExtra("DESCRIPTION", "Application accesses device location coordinates.");
+                    Intent intent = createAlertIntentForApp(app2, "Medium");
                     startActivity(intent);
                 });
             } else {
@@ -646,6 +701,78 @@ public class DashboardActivity extends AppCompatActivity {
                 });
             }
         }
+    }
+
+    private Intent createAlertIntentForApp(AppModel app, String riskLevel) {
+        Intent intent = new Intent(DashboardActivity.this, AlertDetailsActivity.class);
+        intent.putExtra("APP_NAME", app.getApplicationName());
+        intent.putExtra("PACKAGE_NAME", app.getPackageName());
+        intent.putExtra("RISK_LEVEL", riskLevel);
+        intent.putExtra("CURR_RISK", riskLevel);
+        intent.putExtra("ALERT_TITLE", app.getApplicationName() + " - " + riskLevel + " Risk Detected");
+
+        String permSummary = getAppPermissionSummary(app);
+        intent.putExtra("PERMISSION", permSummary);
+
+        String lastUpdated = getAppLastUpdatedTime(app.getPackageName());
+        intent.putExtra("TIME", lastUpdated);
+
+        String explanation = null;
+        if (sessionManager != null) {
+            RiskScoreModel rsm = sessionManager.getAppRiskScore(app.getPackageName());
+            if (rsm != null && rsm.getExplanations() != null && !rsm.getExplanations().isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (String reason : rsm.getExplanations()) {
+                    if (sb.length() > 0) sb.append("\n• ");
+                    else sb.append("• ");
+                    sb.append(reason);
+                }
+                explanation = sb.toString();
+            } else if (rsm != null && rsm.getAnalysisSummary() != null && !rsm.getAnalysisSummary().isEmpty()) {
+                explanation = rsm.getAnalysisSummary();
+            }
+        }
+        if (explanation == null || explanation.isEmpty()) {
+            List<String> sens = app.getGrantedSensitivePermissions();
+            if (sens != null && !sens.isEmpty()) {
+                explanation = app.getApplicationName() + " has been granted access to sensitive hardware sensors/data (" + permSummary + ") which contributes to an elevated privacy risk score.";
+            } else {
+                explanation = app.getApplicationName() + " requests standard Android capabilities with baseline risk.";
+            }
+        }
+        intent.putExtra("DESCRIPTION", explanation);
+        return intent;
+    }
+
+    private String getAppPermissionSummary(AppModel app) {
+        if (app == null) return "Standard Permissions";
+        List<String> sens = app.getGrantedSensitivePermissions();
+        if (sens != null && !sens.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < sens.size(); i++) {
+                if (i > 0) sb.append(", ");
+                sb.append(PackageManagerHelper.getPermissionDisplayName(sens.get(i)));
+                if (i >= 1 && sens.size() > 2) {
+                    sb.append(" (+").append(sens.size() - 2).append(" more)");
+                    break;
+                }
+            }
+            return sb.toString();
+        }
+        if (app.getDeclaredPermissions() != null && !app.getDeclaredPermissions().isEmpty()) {
+            return app.getDeclaredPermissions().size() + " Declared Permissions";
+        }
+        return "Standard Permissions";
+    }
+
+    private String getAppLastUpdatedTime(String packageName) {
+        if (packageName != null) {
+            try {
+                android.content.pm.PackageInfo pi = getPackageManager().getPackageInfo(packageName, 0);
+                return new java.text.SimpleDateFormat("MMM dd, yyyy • hh:mm a", java.util.Locale.getDefault()).format(new java.util.Date(pi.lastUpdateTime));
+            } catch (Exception ignored) {}
+        }
+        return new java.text.SimpleDateFormat("MMM dd, yyyy • hh:mm a", java.util.Locale.getDefault()).format(new java.util.Date());
     }
 
     private void setupPrivacyTimeline(int currentScore, String currentLevel, int totalApps) {
@@ -733,15 +860,18 @@ public class DashboardActivity extends AppCompatActivity {
         }
 
         int targetColor;
-        if (score >= 70 || (level != null && level.contains("LOW"))) {
-            targetColor = 0xFF00E676; // Vibrant Green
+        boolean isHigh = (level != null && (level.contains("HIGH") || level.contains("CRIT"))) || score < 40;
+        boolean isMed = (level != null && level.contains("MEDIUM")) || (score >= 40 && score < 70);
+
+        if (isHigh) {
+            targetColor = 0xFFFF3B30; // Vibrant Red
             if (txtRiskLevel != null) {
-                txtRiskLevel.setText("LOW RISK\n(PROTECTED)");
+                txtRiskLevel.setText("HIGH RISK\nDETECTED");
             }
             if (txtSecurityStatusSummary != null) {
-                txtSecurityStatusSummary.setText("Your device appears secure. Privacy score is healthy.");
+                txtSecurityStatusSummary.setText("High privacy risk detected! Review sensitive app permissions.");
             }
-        } else if (score >= 40 || (level != null && level.contains("MEDIUM"))) {
+        } else if (isMed) {
             targetColor = 0xFFFFC107; // Vibrant Amber/Yellow
             if (txtRiskLevel != null) {
                 txtRiskLevel.setText("MEDIUM RISK");
@@ -750,12 +880,12 @@ public class DashboardActivity extends AppCompatActivity {
                 txtSecurityStatusSummary.setText("Moderate risk detected. Audit apps with location/mic access.");
             }
         } else {
-            targetColor = 0xFFFF3B30; // Vibrant Red
+            targetColor = 0xFF00E676; // Vibrant Green
             if (txtRiskLevel != null) {
-                txtRiskLevel.setText("HIGH RISK\nDETECTED");
+                txtRiskLevel.setText("LOW RISK\n(PROTECTED)");
             }
             if (txtSecurityStatusSummary != null) {
-                txtSecurityStatusSummary.setText("High privacy risk detected! Review sensitive app permissions.");
+                txtSecurityStatusSummary.setText("Your device appears secure. Privacy score is healthy.");
             }
         }
 

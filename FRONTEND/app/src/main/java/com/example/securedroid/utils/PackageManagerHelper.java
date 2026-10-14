@@ -91,6 +91,41 @@ public class PackageManagerHelper {
         return breakdown;
     }
 
+    public static String getPermissionDisplayName(String permission) {
+        if (permission == null) return "";
+        String u = permission.toUpperCase(Locale.ROOT);
+        if (u.contains("ACCESS_FINE_LOCATION")) return "Precise Location";
+        if (u.contains("ACCESS_COARSE_LOCATION")) return "Approximate Location";
+        if (u.contains("ACCESS_BACKGROUND_LOCATION")) return "Background Location";
+        if (u.contains("RECORD_AUDIO")) return "Microphone";
+        if (u.contains("CAMERA")) return "Camera";
+        if (u.contains("READ_CONTACTS") || u.contains("WRITE_CONTACTS")) return "Contacts";
+        if (u.contains("READ_CALENDAR") || u.contains("WRITE_CALENDAR")) return "Calendar";
+        if (u.contains("READ_CALL_LOG") || u.contains("WRITE_CALL_LOG")) return "Call Logs";
+        if (u.contains("READ_SMS") || u.contains("SEND_SMS") || u.contains("RECEIVE_SMS")) return "SMS";
+        if (u.contains("READ_PHONE_STATE") || u.contains("CALL_PHONE")) return "Phone";
+        if (u.contains("READ_EXTERNAL_STORAGE") || u.contains("WRITE_EXTERNAL_STORAGE") || u.contains("MANAGE_EXTERNAL_STORAGE")) return "Storage";
+        if (u.contains("READ_MEDIA_IMAGES") || u.contains("READ_MEDIA_VIDEO") || u.contains("READ_MEDIA_AUDIO")) return "Media & Photos";
+        if (u.contains("POST_NOTIFICATIONS")) return "Notifications";
+        if (u.contains("BODY_SENSORS")) return "Body Sensors";
+        if (u.contains("ACTIVITY_RECOGNITION")) return "Physical Activity";
+        if (u.contains("BLUETOOTH_SCAN") || u.contains("BLUETOOTH_CONNECT")) return "Nearby Devices";
+
+        String clean = permission.replace("android.permission.", "");
+        clean = clean.replace("_", " ");
+        String[] parts = clean.split(" ");
+        StringBuilder sb = new StringBuilder();
+        for (String p : parts) {
+            if (p.isEmpty()) continue;
+            if (sb.length() > 0) sb.append(" ");
+            sb.append(p.substring(0, 1).toUpperCase(Locale.ROOT));
+            if (p.length() > 1) {
+                sb.append(p.substring(1).toLowerCase(Locale.ROOT));
+            }
+        }
+        return sb.toString();
+    }
+
     public static List<AppModel> getInstalledApps(Context context) {
         List<AppModel> appList = new ArrayList<>();
         PackageManager pm = context.getPackageManager();
